@@ -1,0 +1,6 @@
+[submodule "stb"]
+	path = stb
+	url = git@github.com:nothings/stb.git
+[submodule "json"]
+	path = json
+	url = git@github.com:nlohmann/json.git
