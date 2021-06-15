@@ -8,9 +8,8 @@ int main(int argc, char* argv[]) {
 	std::string jsonFile = "settingData.json";
 	for (int i = 1; i < argc; ++i) {
 		std::string command = argv[i];
-		std::cout << command << std::endl;
 		if (command == "-?") {
-			std::cout << "Usage: RaytracingMin.exe [OPTION]..." << std::endl
+			std::cout << "Usage: RaytracingMin.exe [OPTION]..." << std::endl << std::endl
 				<< "-sampleJson : サンプルシーンのjsonファイルを保存 ファイル名:settingData.json" << std::endl
 				<< "-json : jsonファイルの指定 指定しない場合はsettingData.jsonで読み込む" << std::endl;
 			return 0;

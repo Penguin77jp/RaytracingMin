@@ -5,7 +5,7 @@ jsonファイルから設定を読み込みレイトレーシングをして、�
 
 ## 使い方
 
-`RaytracingMin.exe -?`で使い方を確認して下さい。
+`RaytracingMin.exe -?` で使い方を確認して下さい。
 
 # ThirdParty
 - [nlohmann/json](https://github.com/nlohmann/json)
