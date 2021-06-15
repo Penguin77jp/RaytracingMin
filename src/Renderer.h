@@ -3,15 +3,16 @@
 #include <nlohmann/json.hpp>
 #include <vector>
 
-#include "Camera.h"
+#include "SettingData.h"
 
 namespace png {
 	class Renderer {
 	public:
-		Renderer(nlohmann::json&);
+		Renderer(SettingData&);
 
-		void Render(Camera&, std::string);
+		void Render(std::string);
 	private:
-		std::vector<unsigned char> image;
+		std::vector<double> image;
+		SettingData& data;
 	};
 }

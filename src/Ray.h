@@ -48,19 +48,6 @@ namespace png {
 		operator std::string() const {
 			return std::to_string(this->x) + std::string(" , ") + std::to_string(this->y) + std::string(" , ") + std::to_string(this->z);
 		}
-
-		static float Dot(vec3 a, vec3 b) {
-			return a.x * b.x + a.y * b.y + a.z * b.z;
-		}
-		static vec3 Cross(vec3 a, vec3 b) {
-			return vec3(a.y * b.z - a.z * b.y, -a.x * b.z + a.z * b.x, a.x * b.y - a.y * b.x);
-		}
-		static float Magnitude(vec3 a) {
-			return std::sqrtf(a.x * a.x + a.y * a.y + a.z * a.z);
-		}
-		static vec3 Normalize(vec3 a) {
-			return  a / Magnitude(a);
-		}
 	};
 
 	class Ray {
@@ -69,4 +56,17 @@ namespace png {
 		Ray(vec3 o, vec3 d) :org(o), dir(d) {}
 		Ray() :org(vec3()), dir(vec3()) {}
 	};
+}
+
+static float Dot(const png::vec3 & a, const png::vec3& b) {
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+static png::vec3 Cross(const png::vec3& a, const png::vec3& b) {
+	return png::vec3(a.y * b.z - a.z * b.y, -a.x * b.z + a.z * b.x, a.x * b.y - a.y * b.x);
+}
+static float Magnitude(const png::vec3& a) {
+	return std::sqrtf(a.x * a.x + a.y * a.y + a.z * a.z);
+}
+static png::vec3 Normalize(const png::vec3& a) {
+	return  a / Magnitude(a);
 }
