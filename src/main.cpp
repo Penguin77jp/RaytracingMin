@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <filesystem>
 
 #include "Renderer.h"
 #include "SettingData.h"
@@ -32,6 +33,10 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	if (!std::filesystem::exists(jsonFile)) {
+		std::cout << "サンプルシーンのjsonファイルを保存 ファイル名:settingData.json" << std::endl;
+		png::LoadData::SaveSampleJson(jsonFile);
+	}
 	std::cout << jsonFile << "を読み込みレンダリング開始" << std::endl;
 	png::LoadData loadData(jsonFile);
 	png::Renderer renderer(loadData.data);
