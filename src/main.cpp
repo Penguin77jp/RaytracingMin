@@ -4,8 +4,13 @@
 
 #include "Renderer.h"
 #include "SettingData.h"
+#include "Camera.h"
 
 int main(int argc, char* argv[]) {
+	png::BiconvexLens lens(1,1,1);
+	lens.GetRay(0,0);
+	return 0;
+
 	std::string jsonFile = "settingData.json";
 	for (int i = 1; i < argc; ++i) {
 		std::string command = argv[i];
