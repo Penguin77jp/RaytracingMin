@@ -31,8 +31,8 @@ namespace png {
 			});
 		//light
 		tmp.object.push_back({
-			vec3(0,5,0)
-			, 1.0
+			vec3(0,11,10)
+			, 10.0
 			, Material{
 				vec3(1.0,1.0,1.0)
 				,1.0
