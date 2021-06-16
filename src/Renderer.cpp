@@ -80,6 +80,7 @@ namespace png {
 
 		for (int y = 0; y < data.height; ++y) {
 			std::cout << y << " / " << data.height << std::endl;
+#pragma omp parallel for
 			for (int x = 0; x < data.width; ++x) {
 				for (int s = 0; s < data.sample; ++s) {
 					vec3 dir = Normalize(
