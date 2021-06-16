@@ -5,6 +5,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <iostream>
+#include <thread>
+#include <mutex>
 
 namespace png {
 	using RandType = std::mt19937;
@@ -65,6 +67,19 @@ namespace png {
 		return vec3();
 	}
 
+	/*
+	void Renderer::Render(std::string fileName) {
+		std::vector<std::thread> threads;
+		for (int i = 0; i < 100; ++i) {
+			threads.emplace_back([i]() {Hoge(i); });
+		}
+
+		for (auto& t : threads) {
+			t.join();
+		}
+	}
+	*/
+
 	void Renderer::Render(std::string fileName) {
 		//dir
 		auto direction = Normalize(data.camera.target - data.camera.origin);
@@ -78,6 +93,10 @@ namespace png {
 		std::random_device rnd;
 		RandType mt(rnd());
 
+		std::vector<std::thread> threads(data.height * data.width * data.sample);
+		std::mutex imageMutex;
+		std::cout << "Å‘åƒXƒŒƒbƒh”: " << std::thread::hardware_concurrency() << std::endl;
+
 		for (int y = 0; y < data.height; ++y) {
 			std::cout << y << " / " << data.height << std::endl;
 			for (int x = 0; x < data.width; ++x) {
@@ -87,16 +106,29 @@ namespace png {
 						l_camY * fovy * (2.0f * ((float)y + random(mt)) / data.height - 1.0f) +
 						l_camZ
 					);
-					auto cal = PathTracing(Ray(data.camera.origin, dir), data, mt) / data.sample;
-					image[x * 3 + y * data.width * 3] += cal.x;
-					image[x * 3 + y * data.width * 3 + 1] += cal.y;
-					image[x * 3 + y * data.width * 3 + 2] += cal.z;
+					//auto cal = PathTracing(Ray(data.camera.origin, dir), data, mt) / data.sample;
+					//image[x * 3 + y * data.width * 3] += cal.x;
+					//image[x * 3 + y * data.width * 3 + 1] += cal.y;
+					//image[x * 3 + y * data.width * 3 + 2] += cal.z;
+					auto ray = Ray(data.camera.origin, dir);
+					threads[s + x * data.sample + y * data.width * data.sample] = 
+						std::thread(
+						[this, ray, x, y,&mt, &imageMutex]() {
+							auto cal = PathTracing(ray, data, mt) / data.sample;
+							image[x * 3 + y * data.width * 3] += cal.x;
+							image[x * 3 + y * data.width * 3 + 1] += cal.y;
+							image[x * 3 + y * data.width * 3 + 2] += cal.z;
+						}
+					);
 				}
 			}
 		}
+		for (auto& t : threads) {
+			t.join();
+		}
 		auto resultImage = std::vector<unsigned char>(data.width * data.height * 3);
 		for (int i = 0; i < resultImage.size(); ++i) {
-			resultImage[i] = (unsigned char)255 * std::min(image[i],1.0);
+			resultImage[i] = (unsigned char)255 * std::pow(std::min(image[i], 1.0), 1.0 / 2.2);
 		}
 
 		stbi_write_bmp((fileName + ".bmp").c_str(), data.width, data.height, 3, resultImage.data());
