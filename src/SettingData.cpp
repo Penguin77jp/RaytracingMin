@@ -29,6 +29,7 @@ namespace png {
 				,vec3(0,0,0)
 			}
 			});
+
 		//light
 		tmp.object.push_back({
 			vec3(0,11,10)
@@ -39,6 +40,7 @@ namespace png {
 				,vec3(1,1,1)
 			}
 			});
+
 		//wall
 		{
 			float kd = 0.8;
