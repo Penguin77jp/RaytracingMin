@@ -39,23 +39,24 @@ namespace png {
 				if (random(rand) <= obj.material.kd) {
 					auto tmpRay = ray;
 					tmpRay.org = ray.dir * dis + ray.org;
-					auto tmpDir = Normalize(tmpRay.org - obj.position);
-					while (true) {
-						auto randVec3 = Normalize(vec3(
-							2.0 * random(rand) - 1.0,
-							2.0 * random(rand) - 1.0,
-							2.0 * random(rand) - 1.0
-						));
-						if (Dot(tmpDir, randVec3) >= 0) {
-							tmpDir = randVec3;
-							break;
-						}
+					vec3 u, v, w;
+					w = Normalize(tmpRay.org - obj.position);
+					const auto randPhi = 1.0 / 2 / std::numbers::pi * random(rand);
+					const auto randTheta = std::asin(std::sqrt(random(rand)));
+					if (fabs(w.x) > 0.000001) {
+						u = Normalize(Cross(vec3(0, 1, 0), w));
 					}
-					tmpRay.dir = tmpDir;
-
+					else {
+						u = Normalize(Cross(vec3(1, 0, 0), w));
+					}
+					v = Cross(w, u);
+					tmpRay.dir = Normalize(
+						u * std::sin(randTheta) * std::cos(randPhi) +
+						v * std::sin(randTheta) * std::sin(randPhi) +
+						w * std::cos(randTheta)
+					);
 					auto nextPathTracing = PathTracing(tmpRay, data, rand);
-					auto dot = -Dot(ray.dir, Normalize(tmpRay.org - obj.position));
-					return obj.material.color * nextPathTracing * dot / obj.material.kd + obj.material.emission;
+					return obj.material.color * nextPathTracing / obj.material.kd + obj.material.emission;
 				}
 				else {
 					return obj.material.emission;
@@ -101,7 +102,7 @@ namespace png {
 		}
 		auto resultImage = std::vector<unsigned char>(data.width * data.height * 3);
 		for (int i = 0; i < resultImage.size(); ++i) {
-			resultImage[i] = (unsigned char)255 * std::min(image[i],1.0);
+			resultImage[i] = (unsigned char)255 * std::min(image[i], 1.0);
 		}
 
 		stbi_write_bmp((fileName + ".bmp").c_str(), data.width, data.height, 3, resultImage.data());
