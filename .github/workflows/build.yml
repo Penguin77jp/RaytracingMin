@@ -9,4 +9,4 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
-      - run: g++ ./src/*.cpp ./src/*.h  -I ./stb/ -I ./json/include/ -std=c++20
+      - run: g++ ./src/*.cpp ./src/*.h  -I ./stb/ -I ./json/include/ -std=c++2a
