@@ -1,0 +1,10 @@
+name: build-linux
+on: [push]
+jobs:
+  check-bats-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        uses: textbook/git-checkout-submodule-action@master
+      - run: g++ ./src/*.cpp ./src/*.h  -I ./stb/ -I ./json/include/ -std=c++20
