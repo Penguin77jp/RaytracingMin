@@ -10,7 +10,7 @@ jobs:
         with:
           submodules: recursive
       - run: g++ -v --help 2>/dev/null | grep -E "^\s+\-std=.*$"
-      - run: g++ ./src/*.cpp ./src/*.h  -I ./stb/ -I ./json/include/ -std=c++17 -fopenmp 
+      - run: g++ ./src/*.cpp ./src/*.h  -I ./stb/ -I ./json/include/ -std=c++17 -fopenmp -DOPENMP
       - run: ./a.out
       - uses: actions/upload-artifact@v2
         with:
