@@ -65,7 +65,7 @@ static png::vec3 Cross(const png::vec3& a, const png::vec3& b) {
 	return png::vec3(a.y * b.z - a.z * b.y, -a.x * b.z + a.z * b.x, a.x * b.y - a.y * b.x);
 }
 static float Magnitude(const png::vec3& a) {
-	return std::sqrtf(a.x * a.x + a.y * a.y + a.z * a.z);
+	return std::sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
 }
 static png::vec3 Normalize(const png::vec3& a) {
 	return  a / Magnitude(a);
