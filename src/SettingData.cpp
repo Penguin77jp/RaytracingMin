@@ -25,7 +25,6 @@ namespace png {
 			, 1.0
 			, Material{
 				vec3(1.0,0.2,0.2)
-				,0.8
 				,vec3(0,0,0)
 			}
 			});
@@ -36,14 +35,12 @@ namespace png {
 			, 10.0
 			, Material{
 				vec3(1.0,1.0,1.0)
-				,1.0
 				,vec3(1,1,1)
 			}
 			});
 
 		//wall
 		{
-			float kd = 0.8;
 			float size = 99999;
 			float space = 10;
 			tmp.object.push_back({
@@ -51,7 +48,6 @@ namespace png {
 				, size
 				, Material{
 					vec3(1.0,0.5,0.5)
-					,kd
 					,vec3()
 				}
 				});
@@ -60,7 +56,6 @@ namespace png {
 				, size
 				, Material{
 					vec3(0.5,1.0,0.5)
-					,kd
 					,vec3()
 				}
 				});
@@ -69,7 +64,6 @@ namespace png {
 				, size
 				, Material{
 					vec3(0.5,0.5,1.0)
-					,kd
 					,vec3()
 				}
 				});
@@ -78,7 +72,6 @@ namespace png {
 				, size
 				, Material{
 					vec3(0.5,1.0,1.0)
-					,kd
 					,vec3()
 				}
 				});
@@ -87,7 +80,6 @@ namespace png {
 				, size
 				, Material{
 					vec3(1.0,0.5,1.0)
-					,kd
 					,vec3()
 				}
 				});
@@ -96,7 +88,6 @@ namespace png {
 				, size
 				, Material{
 					vec3(1.0,1.0,0.5)
-					,kd
 					,vec3()
 				}
 				});
@@ -125,7 +116,6 @@ namespace png {
 			json["02 scene"]["00 object"][i]["00 position"] = { obj.position.x,obj.position.y,obj.position.z };
 			json["02 scene"]["00 object"][i]["01 size"] = obj.size;
 			json["02 scene"]["00 object"][i]["02 material"]["color"] = { obj.material.color.x ,obj.material.color.y,obj.material.color.z };
-			json["02 scene"]["00 object"][i]["02 material"]["kd"] = obj.material.kd;
 			json["02 scene"]["00 object"][i]["02 material"]["emission"] = { obj.material.emission.x,obj.material.emission.y,obj.material.emission.z };
 		}
 	}
@@ -168,7 +158,6 @@ namespace png {
 							tmp.material.color.x = it_object.value()["02 material"]["color"][0];
 							tmp.material.color.y = it_object.value()["02 material"]["color"][1];
 							tmp.material.color.z = it_object.value()["02 material"]["color"][2];
-							tmp.material.kd = it_object.value()["02 material"]["kd"];
 							tmp.material.emission.x = it_object.value()["02 material"]["emission"][0];
 							tmp.material.emission.y = it_object.value()["02 material"]["emission"][1];
 							tmp.material.emission.z = it_object.value()["02 material"]["emission"][2];
