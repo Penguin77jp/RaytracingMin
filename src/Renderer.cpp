@@ -159,7 +159,7 @@ namespace png {
 #pragma omp parallel for schedule(dynamic)
 #endif
 		for (int y = 0; y < data.height; ++y) {
-#if defined _DEBUG || defined fopenmp
+#if defined _DEBUG || !defined fopenmp
 			std::cout << y << " / " << data.height << std::endl;
 #else
 			std::cout << y << " / " << data.height <<
