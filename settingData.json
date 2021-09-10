@@ -1,6 +1,6 @@
 {
     "00 height": 1080,
-    "00 sample": 10000,
+    "00 sample": 10,
     "00 width": 1920,
     "01 camera": {
         "fov": 90.0,
