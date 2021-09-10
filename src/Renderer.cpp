@@ -1,12 +1,12 @@
 #include "Renderer.h"
 
-#include <numbers>
 #include <random>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <iostream>
 
 namespace png {
+	constexpr double PI = 3.141592653589793;
 	using RandType = std::mt19937;
 	Renderer::Renderer(SettingData& data)
 		:image(std::vector<double>(data.width* data.height * 3))
@@ -41,7 +41,7 @@ namespace png {
 					tmpRay.org = ray.dir * dis + ray.org;
 					vec3 u, v, w;
 					w = Normalize(tmpRay.org - obj.position);
-					const auto randPhi = 1.0 / 2 / std::numbers::pi * random(rand);
+					const auto randPhi = 1.0 / 2 / PI * random(rand);
 					const auto randTheta = std::asin(std::sqrt(random(rand)));
 					if (fabs(w.x) > 0.000001) {
 						u = Normalize(Cross(vec3(0, 1, 0), w));
@@ -73,7 +73,7 @@ namespace png {
 		auto l_camY = Cross(l_camX, direction);
 		auto l_camZ = direction;
 		//fov
-		double fovx = std::cos((90.0f - data.camera.fov / 2.0f) / 180 * std::numbers::pi);
+		double fovx = std::cos((90.0f - data.camera.fov / 2.0f) / 180 * PI);
 		double fovy = fovx * data.height / data.width;
 		//random
 		std::random_device rnd;
