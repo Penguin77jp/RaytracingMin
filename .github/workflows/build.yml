@@ -14,5 +14,5 @@ jobs:
       - run: ./a.out
       - uses: actions/upload-artifact@v2
         with:
-        name: artifact
-        path: ./
+          name: artifact
+          path: ./
