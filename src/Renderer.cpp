@@ -4,6 +4,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <iostream>
+#include <omp.h>
 //#include <format>
 
 namespace png {
@@ -153,12 +154,13 @@ namespace png {
 		//random
 		std::random_device rnd;
 
-		for (int y = 0; y < data.height; ++y) {
-			std::cout << y << " / " << data.height << std::endl;
 #ifdef _DEBUG
 #else
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
 #endif
+		for (int y = 0; y < data.height; ++y) {
+			std::cout << y << " / " << data.height <<
+				"  thread(" << omp_get_thread_num()+1 << " / " << omp_get_max_threads() << ")" << std::endl;
 
 			for (int x = 0; x < data.width; ++x) {
 				for (int s = 0; s < data.sample; ++s) {
