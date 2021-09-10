@@ -159,9 +159,12 @@ namespace png {
 #pragma omp parallel for schedule(dynamic)
 #endif
 		for (int y = 0; y < data.height; ++y) {
+#ifdef _DEBUG
+			std::cout << y << " / " << data.height << std::endl;
+#else
 			std::cout << y << " / " << data.height <<
-				"  thread(" << omp_get_thread_num()+1 << " / " << omp_get_max_threads() << ")" << std::endl;
-
+				"  thread(" << omp_get_thread_num() + 1 << " / " << omp_get_max_threads() << ")" << std::endl;
+#endif
 			for (int x = 0; x < data.width; ++x) {
 				for (int s = 0; s < data.sample; ++s) {
 					vec3 dir = Normalize(
