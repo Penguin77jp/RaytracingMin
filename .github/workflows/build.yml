@@ -10,4 +10,4 @@ jobs:
         with:
           submodules: recursive
       - run: g++ -v --help 2>/dev/null | grep -E "^\s+\-std=.*$"
-      - run: g++ ./src/*.cpp ./src/*.h  -I ./stb/ -I ./json/include/ -std=c++2a
+      - run: g++ ./src/*.cpp ./src/*.h  -I ./stb/ -I ./json/include/ -std=c++17
