@@ -1,13 +1,19 @@
 #pragma once
 #include <string>
+#include <cmath>
 #include <nlohmann/json.hpp>
 #include "Ray.h"
 
 namespace png {
 	struct Material {
 		vec3 color;
-		float kd;
 		vec3 emission;
+		vec3 colorKD() const {
+			return color / kd();
+		}
+		float kd() const {
+			return std::max(std::max(color.x, color.y), color.z);
+		}
 	};
 	struct Object {
 		vec3 position;
@@ -24,7 +30,7 @@ namespace png {
 		std::vector<Object> object;
 	};
 
-	struct LoadData{
+	struct LoadData {
 		LoadData(std::string);
 		static void SaveSampleJson(std::string);
 

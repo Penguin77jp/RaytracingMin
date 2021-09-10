@@ -6,9 +6,9 @@
 namespace png {
 	class vec3 {
 	public:
-		float x, y, z;
+		double x, y, z;
 		vec3() :x(0), y(0), z(0) {}
-		vec3(float x, float y = 0.0f, float z = 0.0f) :x(x), y(y), z(z) {}
+		vec3(double x, double y = 0.0f, double z = 0.0f) :x(x), y(y), z(z) {}
 		vec3(const vec3& a) : x(a.x), y(a.y), z(a.z) {}
 
 		//operator
@@ -24,13 +24,13 @@ namespace png {
 		vec3 operator *(const vec3& a) const {
 			return vec3(this->x * a.x, this->y * a.y, this->z * a.z);
 		}
-		vec3 operator* (float a) const {
+		vec3 operator* (double a) const {
 			return vec3(this->x * a, this->y * a, this->z * a);
 		}
 		vec3 operator /(const vec3& a) const {
 			return vec3(this->x / a.x, this->y / a.y, this->z / a.z);
 		}
-		vec3 operator /(const float& b) const {
+		vec3 operator /(const double& b) const {
 			return vec3(this->x / b, this->y / b, this->z / b);
 		}
 		vec3& operator +=(const vec3& b) {
@@ -58,14 +58,14 @@ namespace png {
 	};
 }
 
-static float Dot(const png::vec3 & a, const png::vec3& b) {
+static double Dot(const png::vec3 & a, const png::vec3& b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 static png::vec3 Cross(const png::vec3& a, const png::vec3& b) {
 	return png::vec3(a.y * b.z - a.z * b.y, -a.x * b.z + a.z * b.x, a.x * b.y - a.y * b.x);
 }
-static float Magnitude(const png::vec3& a) {
-	return std::sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+static double Magnitude(const png::vec3& a) {
+	return std::sqrtf(a.x * a.x + a.y * a.y + a.z * a.z);
 }
 static png::vec3 Normalize(const png::vec3& a) {
 	return  a / Magnitude(a);
