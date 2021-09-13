@@ -149,7 +149,8 @@ namespace png {
 		auto l_camY = Cross(l_camX, direction);
 		auto l_camZ = direction;
 		//fov
-		double fovx = std::cos((90.0f - data.camera.fov / 2.0f) / 180 * PI);
+		double fovx = data.camera.fov;
+		//double fovx = std::cos((90.0f - data.camera.fov / 2.0f) / 180 * PI);
 		double fovy = fovx * data.height / data.width;
 		//random
 		std::random_device rnd;

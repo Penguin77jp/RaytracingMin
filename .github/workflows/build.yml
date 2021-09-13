@@ -13,7 +13,9 @@ jobs:
       - run: g++ ./src/*.cpp ./src/*.h  -I ./stb/ -I ./json/include/ -std=c++17
       # - run: g++ ./src/*.cpp ./src/*.h  -I ./stb/ -I ./json/include/ -std=c++17 -fopenmp -DOPENMP
       - run: ./a.out
+      - run: mkdir artifact
+      - run: cp result.* artifact
       - uses: actions/upload-artifact@v2
         with:
           name: artifact
-          path: ./
+          path: artifact
