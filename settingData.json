@@ -3,7 +3,7 @@
     "00 sample": 5,
     "00 width": 1920,
     "01 camera": {
-        "fov": 90.0,
+        "fov": 1.0,
         "origin": [
             1.0,
             2.0,
