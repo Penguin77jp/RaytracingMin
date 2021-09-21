@@ -25,7 +25,7 @@ namespace png {
 		float fov;
 	};
 	struct SettingData {
-		int width, height, sample;
+		int width, height, samples, superSamples;
 		Camera camera;
 		std::vector<Object> object;
 	};

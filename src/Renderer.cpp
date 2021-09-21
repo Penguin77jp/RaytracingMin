@@ -155,18 +155,25 @@ namespace png {
 #endif
 
 			for (int x = 0; x < data.width; ++x) {
-				for (int s = 0; s < data.sample; ++s) {
-					vec3 dir = Normalize(
-						l_camX * fovx * (2.0f * ((float)x + random(rnd)) / data.width - 1.0f) +
-						l_camY * fovy * (2.0f * ((float)y + random(rnd)) / data.height - 1.0f) +
-						l_camZ
-					);
-					auto cal = PathTracing(Ray(data.camera.origin, dir), data, rnd) / data.sample;
-					cal = clampColor(cal, 0, 1);
-					image[x * 3 + y * data.width * 3] += cal.x;
-					image[x * 3 + y * data.width * 3 + 1] += cal.y;
-					image[x * 3 + y * data.width * 3 + 2] += cal.z;
+				vec3 accumulatedColor = vec3(0,0,0);
+				for (int sx = 1; sx <= data.superSamples; ++sx) {
+					for (int sy = 1; sy <= data.superSamples; ++sy) {
+						for (int s = 0; s < data.samples; ++s) {
+							const float rate = 1.0 / (1 + data.superSamples);
+							vec3 dir = Normalize(
+								l_camX * fovx * (2.0f * ((double)x + rate * sx) / data.width - 1.0f) +
+								l_camY * fovy * (2.0f * ((double)y + rate * sy) / data.height - 1.0f) +
+								l_camZ
+							);
+							auto cal = PathTracing(Ray(data.camera.origin, dir), data, rnd) / data.superSamples / data.superSamples / data.samples;
+							cal = clampColor(cal, 0, 1);
+							accumulatedColor += cal;
+						}
+					}
 				}
+				image[x * 3 + y * data.width * 3] += accumulatedColor.x;
+				image[x * 3 + y * data.width * 3 + 1] += accumulatedColor.y;
+				image[x * 3 + y * data.width * 3 + 2] += accumulatedColor.z;
 			}
 		}
 		auto resultImage = std::vector<unsigned char>(data.width * data.height * 3);

@@ -14,7 +14,8 @@ namespace png {
 		SettingData tmp;
 		tmp.width = 960;
 		tmp.height = 540;
-		tmp.sample = 5;
+		tmp.samples = 10;
+		tmp.superSamples = 4;
 		tmp.camera.origin = vec3(0, 0, 0);
 		tmp.camera.target = vec3(0, 0, 1);
 		tmp.camera.upVec = vec3(0, 1, 0);
@@ -103,7 +104,8 @@ namespace png {
 		json = {
 			{"00 width", data.width}
 			,{"00 height", data.height}
-			,{"00 sample",data.sample}
+			,{"00 samples",data.samples}
+			,{"00 superSamples",data.superSamples}
 			,{"01 camera",{
 				{"origin",{data.camera.origin.x,data.camera.origin.y,data.camera.origin.z}}
 				,{"target",{data.camera.target.x,data.camera.target.y,data.camera.target.z}}
@@ -123,7 +125,8 @@ namespace png {
 		for (auto& it : json.items()) {
 			if (it.key() == "00 width") data.width = it.value();
 			else if (it.key() == "00 height") data.height = it.value();
-			else if (it.key() == "00 sample") data.sample = it.value();
+			else if (it.key() == "00 samples") data.samples = it.value();
+			else if (it.key() == "00 superSamples") data.superSamples = it.value();
 			else if (it.key() == "01 camera") {
 				for (auto& it_cam : it.value().items()) {
 					if (it_cam.key() == "origin") {
