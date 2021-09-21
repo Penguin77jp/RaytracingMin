@@ -35,30 +35,6 @@ namespace png {
 		}
 	}
 
-	nullable<double> intersect(const Ray& ray, const Object& obj) {
-		const vec3 p_o = obj.position - ray.org;
-		const double b = Dot(p_o, ray.dir);
-		const double D4 = b * b - Dot(p_o, p_o) + obj.size * obj.size;
-
-		if (D4 < 0.0)
-			return nullable<double>{0, false};
-
-		const double sqrt_D4 = sqrt(D4);
-		const double t1 = b - sqrt_D4, t2 = b + sqrt_D4;
-
-		const float minValue = 1e-5;
-		if (t1 < minValue && t2 < minValue)
-			return nullable<double>{0, false};
-
-		if (t1 > 0.001) {
-			return nullable<double>{t1, true};
-		}
-		else {
-			return nullable<double>{t2, true};
-		}
-
-	}
-
 	double random(std::random_device& gene) {
 		return (double)gene() / std::numeric_limits<unsigned int>::max();
 	}
@@ -83,10 +59,9 @@ namespace png {
 		{
 			for (int i = 0; i < data.object.size(); ++i) {
 				auto& obj = data.object[i];
-				auto tmp_dis = intersect(ray, obj);
-				//float tmp_dis = hit_sphere(obj.position, obj.size, ray);
-				if (tmp_dis.has_value && tmp_dis.value < dis && tmp_dis.value > 0) {
-					dis = tmp_dis.value;
+				auto tmp_dis = obj->HitDistance(ray);
+				if (tmp_dis < dis && tmp_dis > 0) {
+					dis = tmp_dis;
 					hitObject = i;
 				}
 			}
@@ -95,7 +70,7 @@ namespace png {
 		if (hitObject != -1) {
 			auto& obj = data.object[hitObject];
 			if (dis > 0) {
-				if (random(rand) <= obj.material->kd()) {
+				if (random(rand) <= obj->material->kd()) {
 					const auto hitPoint = ray.dir * dis + ray.org;
 					const auto normal_hitedPoint = Normalize(hitPoint - obj.position);
 					auto nextRay = obj.material->ScatteredRay();
