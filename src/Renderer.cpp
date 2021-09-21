@@ -5,10 +5,10 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <iostream>
-#include <format>
 
 namespace png {
 	namespace {
+		constexpr double PI = 3.14159265358979323846;
 		template <typename T>
 		struct nullable {
 			T value;
@@ -98,14 +98,13 @@ namespace png {
 				if (random(rand) <= obj.material.kd()) {
 					const auto hitPoint = ray.dir * dis + ray.org;
 					const auto normal_hitedPoint = Normalize(hitPoint - obj.position);
-					//const auto orienting_normal = normal_hitedPoint;
 					const auto orienting_normal = Dot(normal_hitedPoint, ray.dir) < 0.0
 						? normal_hitedPoint : (normal_hitedPoint * -1.0);
 					auto nextRay = ray;
 					nextRay.org = hitPoint;
 					vec3 u, v, w;
 					w = orienting_normal;
-					const auto r1 = 2 * std::numbers::pi * random(rand);
+					const auto r1 = 2 * PI * random(rand);
 					const auto r2 = random(rand);
 					const auto r2s = sqrt(r2);
 					/*
@@ -126,11 +125,6 @@ namespace png {
 						w * sqrt(1.0 - r2))
 					);
 					auto nextPathTracing = PathTracing(nextRay, data, rand);
-					//PrintfDebug(std::format("objColor {} kd {}\nnextPath{}\n"
-						//, std::string(obj.material.colorKD()), obj.material.kd(),
-						//std::string(nextPathTracing)));
-					//PrintfDebug(std::format("nextPath{}\n",
-						//std::string(nextPathTracing)));
 					return obj.material.colorKD() * nextPathTracing + obj.material.emission;
 				}
 				else {
@@ -148,7 +142,7 @@ namespace png {
 		auto l_camY = Cross(l_camX, direction);
 		auto l_camZ = direction;
 		//fov
-		double fovx = std::cos((90.0f - data.camera.fov / 2.0f) / 180 * std::numbers::pi);
+		double fovx = data.camera.fov;
 		double fovy = fovx * data.height / data.width;
 		//random
 		std::random_device rnd;
@@ -161,18 +155,25 @@ namespace png {
 #endif
 
 			for (int x = 0; x < data.width; ++x) {
-				for (int s = 0; s < data.sample; ++s) {
-					vec3 dir = Normalize(
-						l_camX * fovx * (2.0f * ((float)x + random(rnd)) / data.width - 1.0f) +
-						l_camY * fovy * (2.0f * ((float)y + random(rnd)) / data.height - 1.0f) +
-						l_camZ
-					);
-					auto cal = PathTracing(Ray(data.camera.origin, dir), data, rnd) / data.sample;
-					cal = clampColor(cal, 0, 1);
-					image[x * 3 + y * data.width * 3] += cal.x;
-					image[x * 3 + y * data.width * 3 + 1] += cal.y;
-					image[x * 3 + y * data.width * 3 + 2] += cal.z;
+				vec3 accumulatedColor = vec3(0,0,0);
+				for (int sx = 1; sx <= data.superSamples; ++sx) {
+					for (int sy = 1; sy <= data.superSamples; ++sy) {
+						for (int s = 0; s < data.samples; ++s) {
+							const float rate = 1.0 / (1 + data.superSamples);
+							vec3 dir = Normalize(
+								l_camX * fovx * (2.0f * ((double)x + rate * sx) / data.width - 1.0f) +
+								l_camY * fovy * (2.0f * ((double)y + rate * sy) / data.height - 1.0f) +
+								l_camZ
+							);
+							auto cal = PathTracing(Ray(data.camera.origin, dir), data, rnd) / data.superSamples / data.superSamples / data.samples;
+							cal = clampColor(cal, 0, 1);
+							accumulatedColor += cal;
+						}
+					}
 				}
+				image[x * 3 + y * data.width * 3] += accumulatedColor.x;
+				image[x * 3 + y * data.width * 3 + 1] += accumulatedColor.y;
+				image[x * 3 + y * data.width * 3 + 2] += accumulatedColor.z;
 			}
 		}
 		auto resultImage = std::vector<unsigned char>(data.width * data.height * 3);
