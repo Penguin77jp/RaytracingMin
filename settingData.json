@@ -1,6 +1,6 @@
 {
     "00 height": 504,
-    "00 samples": 25,
+    "00 samples": 10,
     "00 superSamples": 4,
     "00 width": 960,
     "01 camera": {
@@ -32,6 +32,7 @@
                 ],
                 "01 size": 5,
                 "02 material": {
+                    "type": 0,
                     "color": [
                         0,
                         0,
@@ -52,6 +53,7 @@
                 ],
                 "01 size": 10000,
                 "02 material": {
+                    "type": 0,
                     "color": [
                         0.9,
                         0.25,
@@ -72,6 +74,7 @@
                 ],
                 "01 size": 10000,
                 "02 material": {
+                    "type": 0,
                     "color": [
                         0.25,
                         0.9,
@@ -92,6 +95,7 @@
                 ],
                 "01 size": 10000,
                 "02 material": {
+                    "type": 0,
                     "color": [
                         0.25,
                         0.25,
@@ -112,6 +116,7 @@
                 ],
                 "01 size": 10000,
                 "02 material": {
+                    "type": 0,
                     "color": [
                         0.7,
                         0.7,
@@ -132,6 +137,7 @@
                 ],
                 "01 size": 10000,
                 "02 material": {
+                    "type": 0,
                     "color": [
                         0.9,
                         0.25,
@@ -152,6 +158,7 @@
                 ],
                 "01 size": 10000,
                 "02 material": {
+                    "type": 0,
                     "color": [
                         0.25,
                         0.9,

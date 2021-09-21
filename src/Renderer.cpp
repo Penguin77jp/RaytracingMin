@@ -95,23 +95,19 @@ namespace png {
 		if (hitObject != -1) {
 			auto& obj = data.object[hitObject];
 			if (dis > 0) {
-				if (random(rand) <= obj.material.kd()) {
+				if (random(rand) <= obj.material->kd()) {
 					const auto hitPoint = ray.dir * dis + ray.org;
 					const auto normal_hitedPoint = Normalize(hitPoint - obj.position);
+					auto nextRay = obj.material->ScatteredRay();
+					/*
 					const auto orienting_normal = Dot(normal_hitedPoint, ray.dir) < 0.0
 						? normal_hitedPoint : (normal_hitedPoint * -1.0);
-					auto nextRay = ray;
 					nextRay.org = hitPoint;
 					vec3 u, v, w;
 					w = orienting_normal;
 					const auto r1 = 2 * PI * random(rand);
 					const auto r2 = random(rand);
 					const auto r2s = sqrt(r2);
-					/*
-					error
-					const auto randPhi = 1.0 / 2 / std::numbers::pi * random(rand);
-					const auto randTheta = std::asin(std::sqrt(random(rand)));
-					*/
 					if (fabs(w.x) > std::numeric_limits<float>::min()) {
 						u = Normalize(Cross(vec3(0, 1, 0), w));
 					}
@@ -124,11 +120,12 @@ namespace png {
 						v * sin(r1) * r2s +
 						w * sqrt(1.0 - r2))
 					);
+					*/
 					auto nextPathTracing = PathTracing(nextRay, data, rand);
-					return obj.material.colorKD() * nextPathTracing + obj.material.emission;
+					return obj.material->colorKD() * nextPathTracing + obj.material->emission;
 				}
 				else {
-					return obj.material.emission;
+					return obj.material->emission;
 				}
 			}
 		}

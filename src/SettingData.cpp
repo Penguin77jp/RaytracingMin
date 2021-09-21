@@ -21,10 +21,11 @@ namespace png {
 		tmp.camera.upVec = vec3(0, 1, 0);
 		tmp.camera.fov = 60;
 
+		/*
 		tmp.object.push_back({
 			vec3(0,0,10)
 			, 1.0
-			, Material{
+			, new DiffuseMaterial{
 				vec3(1.0,0.2,0.2)
 				,vec3(0,0,0)
 			}
@@ -93,6 +94,7 @@ namespace png {
 				}
 				});
 		}
+		*/
 
 		nlohmann::json tmpJson;
 		to_json(tmpJson, tmp);
@@ -117,8 +119,9 @@ namespace png {
 			auto& obj = data.object[i];
 			json["02 scene"]["00 object"][i]["00 position"] = { obj.position.x,obj.position.y,obj.position.z };
 			json["02 scene"]["00 object"][i]["01 size"] = obj.size;
-			json["02 scene"]["00 object"][i]["02 material"]["color"] = { obj.material.color.x ,obj.material.color.y,obj.material.color.z };
-			json["02 scene"]["00 object"][i]["02 material"]["emission"] = { obj.material.emission.x,obj.material.emission.y,obj.material.emission.z };
+			//json["02 scene"]["00 object"][i]["02 material"]["type"] = {  };
+			//json["02 scene"]["00 object"][i]["02 material"]["color"] = { obj.material.color.x ,obj.material.color.y,obj.material.color.z };
+			//json["02 scene"]["00 object"][i]["02 material"]["emission"] = { obj.material.emission.x,obj.material.emission.y,obj.material.emission.z };
 		}
 	}
 	void LoadData::from_json(const nlohmann::json& json, SettingData& data) {
@@ -158,12 +161,15 @@ namespace png {
 							tmp.position.y = it_object.value()["00 position"][1];
 							tmp.position.z = it_object.value()["00 position"][2];
 							tmp.size = it_object.value()["01 size"];
-							tmp.material.color.x = it_object.value()["02 material"]["color"][0];
-							tmp.material.color.y = it_object.value()["02 material"]["color"][1];
-							tmp.material.color.z = it_object.value()["02 material"]["color"][2];
-							tmp.material.emission.x = it_object.value()["02 material"]["emission"][0];
-							tmp.material.emission.y = it_object.value()["02 material"]["emission"][1];
-							tmp.material.emission.z = it_object.value()["02 material"]["emission"][2];
+							int materialType = it_object.value()["02 material"]["type"];
+							tmp.material = new DiffuseMaterial();
+							auto mat = tmp.material;
+							mat->color.x = it_object.value()["02 material"]["color"][0];
+							mat->color.y = it_object.value()["02 material"]["color"][1];
+							mat->color.z = it_object.value()["02 material"]["color"][2];
+							mat->emission.x = it_object.value()["02 material"]["emission"][0];
+							mat->emission.y = it_object.value()["02 material"]["emission"][1];
+							mat->emission.z = it_object.value()["02 material"]["emission"][2];
 							data.object.push_back(tmp);
 						}
 					}
