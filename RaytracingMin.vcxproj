@@ -20,12 +20,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Random.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\SceneObject.cpp" />
     <ClCompile Include="src\SettingData.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Color.h" />
+    <ClInclude Include="src\Random.h" />
     <ClInclude Include="src\Ray.h" />
     <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\SceneObject.h" />
     <ClInclude Include="src\SettingData.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

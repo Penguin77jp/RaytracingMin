@@ -21,6 +21,7 @@ namespace png {
 		tmp.camera.upVec = vec3(0, 1, 0);
 		tmp.camera.fov = 60;
 
+		/*
 		tmp.object.push_back({
 			vec3(0,0,10)
 			, 1.0
@@ -93,6 +94,7 @@ namespace png {
 				}
 				});
 		}
+		*/
 
 		nlohmann::json tmpJson;
 		to_json(tmpJson, tmp);
@@ -115,10 +117,12 @@ namespace png {
 		};
 		for (int i = 0; i < data.object.size(); ++i) {
 			auto& obj = data.object[i];
+			/*
 			json["02 scene"]["00 object"][i]["00 position"] = { obj.position.x,obj.position.y,obj.position.z };
 			json["02 scene"]["00 object"][i]["01 size"] = obj.size;
 			json["02 scene"]["00 object"][i]["02 material"]["color"] = { obj.material.color.x ,obj.material.color.y,obj.material.color.z };
 			json["02 scene"]["00 object"][i]["02 material"]["emission"] = { obj.material.emission.x,obj.material.emission.y,obj.material.emission.z };
+			*/
 		}
 	}
 	void LoadData::from_json(const nlohmann::json& json, SettingData& data) {
@@ -153,17 +157,34 @@ namespace png {
 				for (auto& it_scene : it.value().items()) {
 					if (it_scene.key() == "00 object") {
 						for (auto& it_object : it_scene.value().items()) {
-							Object tmp;
-							tmp.position.x = it_object.value()["00 position"][0];
-							tmp.position.y = it_object.value()["00 position"][1];
-							tmp.position.z = it_object.value()["00 position"][2];
-							tmp.size = it_object.value()["01 size"];
-							tmp.material.color.x = it_object.value()["02 material"]["color"][0];
-							tmp.material.color.y = it_object.value()["02 material"]["color"][1];
-							tmp.material.color.z = it_object.value()["02 material"]["color"][2];
-							tmp.material.emission.x = it_object.value()["02 material"]["emission"][0];
-							tmp.material.emission.y = it_object.value()["02 material"]["emission"][1];
-							tmp.material.emission.z = it_object.value()["02 material"]["emission"][2];
+							SceneObject* tmp;
+							int objectType = it_object.value()["00 objectType"];
+							// sphere
+							if (objectType == 0) {
+								vec3 posi;
+								posi.x = it_object.value()["01 position"][0];
+								posi.y = it_object.value()["01 position"][1];
+								posi.z = it_object.value()["01 position"][2];
+								float size = it_object.value()["02 size"];
+
+								//material
+								int materialType = it_object.value()["03 material"]["type"];
+								Material* mat = nullptr;
+								if (materialType == 0) {
+									vec3 color;
+									color.x = it_object.value()["03 material"]["color"][0];
+									color.y = it_object.value()["03 material"]["color"][1];
+									color.z = it_object.value()["03 material"]["color"][2];
+									vec3 emission;
+									emission.x = it_object.value()["03 material"]["emission"][0];
+									emission.y = it_object.value()["03 material"]["emission"][1];
+									emission.z = it_object.value()["03 material"]["emission"][2];
+									mat = new DiffuseMaterial(color, emission);
+								}
+								
+								tmp = new SphereObject(posi,size,mat);
+							}
+							
 							data.object.push_back(tmp);
 						}
 					}

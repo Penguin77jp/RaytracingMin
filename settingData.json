@@ -25,13 +25,15 @@
         "00 object": [
             {
                 "comment": "Source Light",
-                "00 position": [
+                "00 objectType": 0,
+                "01 position": [
                     0,
                     10,
                     0
                 ],
-                "01 size": 5,
-                "02 material": {
+                "02 size": 5,
+                "03 material": {
+                    "type": 0,
                     "color": [
                         0,
                         0,
@@ -45,13 +47,15 @@
                 }
             },
             {
-                "00 position": [
+                "00 objectType": 0,
+                "01 position": [
                     10010,
                     0,
                     0
                 ],
-                "01 size": 10000,
-                "02 material": {
+                "02 size": 10000,
+                "03 material": {
+                    "type": 0,
                     "color": [
                         0.9,
                         0.25,
@@ -65,13 +69,15 @@
                 }
             },
             {
-                "00 position": [
+                "00 objectType": 0,
+                "01 position": [
                     -10010,
                     0,
                     0
                 ],
-                "01 size": 10000,
-                "02 material": {
+                "02 size": 10000,
+                "03 material": {
+                    "type": 0,
                     "color": [
                         0.25,
                         0.9,
@@ -85,13 +91,15 @@
                 }
             },
             {
-                "00 position": [
+                "00 objectType": 0,
+                "01 position": [
                     0,
                     10010,
                     0
                 ],
-                "01 size": 10000,
-                "02 material": {
+                "02 size": 10000,
+                "03 material": {
+                    "type": 0,
                     "color": [
                         0.25,
                         0.25,
@@ -105,13 +113,15 @@
                 }
             },
             {
-                "00 position": [
+                "00 objectType": 0,
+                "01 position": [
                     0,
                     -10010,
                     0
                 ],
-                "01 size": 10000,
-                "02 material": {
+                "02 size": 10000,
+                "03 material": {
+                    "type": 0,
                     "color": [
                         0.7,
                         0.7,
@@ -125,13 +135,15 @@
                 }
             },
             {
-                "00 position": [
+                "00 objectType": 0,
+                "01 position": [
                     0,
                     0,
                     10010
                 ],
-                "01 size": 10000,
-                "02 material": {
+                "02 size": 10000,
+                "03 material": {
+                    "type": 0,
                     "color": [
                         0.9,
                         0.25,
@@ -145,13 +157,15 @@
                 }
             },
             {
-                "00 position": [
+                "00 objectType": 0,
+                "01 position": [
                     0,
                     0,
                     -10010
                 ],
-                "01 size": 10000,
-                "02 material": {
+                "02 size": 10000,
+                "03 material": {
+                    "type": 0,
                     "color": [
                         0.25,
                         0.9,

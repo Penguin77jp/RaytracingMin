@@ -3,23 +3,9 @@
 #include <cmath>
 #include <nlohmann/json.hpp>
 #include "Ray.h"
+#include "SceneObject.h"
 
 namespace png {
-	struct Material {
-		vec3 color;
-		vec3 emission;
-		vec3 colorKD() const {
-			return color / kd();
-		}
-		float kd() const {
-			return std::max(std::max(color.x, color.y), color.z);
-		}
-	};
-	struct Object {
-		vec3 position;
-		float size;
-		Material material;
-	};
 	struct Camera {
 		vec3 origin, target, upVec;
 		float fov;
@@ -27,7 +13,7 @@ namespace png {
 	struct SettingData {
 		int width, height, samples, superSamples;
 		Camera camera;
-		std::vector<Object> object;
+		std::vector<SceneObject*> object;
 	};
 
 	struct LoadData {
