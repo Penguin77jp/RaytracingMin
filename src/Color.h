@@ -89,6 +89,11 @@ namespace png {
 		return xyz;
 	}
 
+    // value 0 ~ 1.8
+    double spectrumFromRGB(vec3 rgb) {
+        return -1;
+    }
+
 	/*
 	function string = xyzString(XYZ)
 			string = "(" + XYZ.x + " , " + XYZ.y + " , " + XYZ.z + ")";

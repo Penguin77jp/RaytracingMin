@@ -5,6 +5,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <iostream>
+#include "Color.h"
 
 namespace png {
 	using RandType = std::mt19937;
@@ -45,7 +46,7 @@ namespace png {
 #endif
 	}
 
-	vec3 PathTracing(const Ray ray, const double spectrum, SettingData& data, std::random_device& rand) {
+	vec3 Pathtracing(const Ray ray, SettingData& data, std::random_device& rand) {
 		int hitObject = -1;
 		double dis = std::numeric_limits<double>::max();
 		{
@@ -65,7 +66,7 @@ namespace png {
 			if (dis > 0) {
 				if (random(rand) <= obj->material->kd()) {
 					auto nextRay = obj->ScatteredRay(ray, 0, rand);
-					auto nextPathTracing = PathTracing(nextRay,spectrum, data, rand);
+					auto nextPathTracing = Pathtracing(nextRay, data, rand);
 					return obj->material->color() / obj->material->kd() * nextPathTracing + obj->material->emission();
 				}
 				else {
@@ -76,7 +77,47 @@ namespace png {
 		return vec3();
 	}
 
+    double SpectrumPathtracing(const Ray ray, const double spectrum, SettingData& data, std::random_device& rand) {
+        int hitObject = -1;
+        double dis = std::numeric_limits<double>::max();
+        {
+            for (int i = 0; i < data.object.size(); ++i) {
+                auto& obj = data.object[i];
+                auto tmp_dis = obj->HitDistance(ray);
+                //float tmp_dis = hit_sphere(obj.position, obj.size, ray);
+                if (tmp_dis < dis && tmp_dis > 0) {
+                    dis = tmp_dis;
+                    hitObject = i;
+                }
+            }
+        }
+
+        if (hitObject != -1) {
+            auto& obj = data.object[hitObject];
+            if (dis > 0) {
+                const double  spectrum = spectrumFromRGB(obj->material->color());
+                // 0.0480 means max refraction value
+                const double maxRefraction = 0.0480;
+                if (random(rand) <= spectrum / maxRefraction) {
+                    auto nextRay = obj->ScatteredRay(ray, 0, rand);
+                    auto nextPathTracing = SpectrumPathtracing(nextRay,spectrum, data, rand);
+                    return maxRefraction * nextPathTracing + spectrumFromRGB(obj->material->emission());
+                }
+                else {
+                    return spectrumFromRGB(obj->material->emission());
+                }
+            }
+        }
+        return 0;
+    }
+
 	void Renderer::Render(std::string fileName) {
+        /*
+         *  Rendering Mode
+         *  0 : normal pathtracing
+         *  1: spectrum pathtracing
+         */
+        const int renderingMode = 1;
 		//dir
 		auto direction = Normalize(data.camera.target - data.camera.origin);
 		auto l_camX = -Normalize(Cross(direction, data.camera.upVec));
@@ -106,8 +147,21 @@ namespace png {
 								l_camY * fovy * (2.0f * ((double)y + rate * sy) / data.height - 1.0f) +
 								l_camZ
 							);
-							const double spectrum = random(rnd)*440.0 + 390;
-							auto cal = PathTracing(Ray(data.camera.origin, dir), spectrum, data, rnd) / data.superSamples / data.superSamples / data.samples;
+                            vec3 cal;
+                            if (renderingMode == 0) {
+                                cal = Pathtracing(Ray(data.camera.origin, dir), data, rnd) /
+                                      data.superSamples / data.superSamples / data.samples;
+                            }else if (renderingMode == 1) {
+                                // add spectrum and value struct
+                                std::vector<double> specturms;
+                                for (int spec=0;spec<2;spec++) {
+                                    const double spectrum = random(rnd) * 440.0 + 390;
+                                    const auto calSpectrum =
+                                            SpectrumPathtracing(Ray(data.camera.origin, dir), spectrum, data, rnd) /
+                                            data.superSamples / data.superSamples / data.samples;
+
+                                }
+                            }
 							cal = clampColor(cal, 0, 1);
 							accumulatedColor += cal;
 						}
