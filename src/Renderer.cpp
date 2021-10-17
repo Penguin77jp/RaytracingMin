@@ -95,20 +95,86 @@ namespace png {
         if (hitObject != -1) {
             auto& obj = data.object[hitObject];
             if (dis > 0) {
-                const double  spectrum = spectrumFromRGB(obj->material->color());
-                // 0.0480 means max refraction value
-                const double maxRefraction = 0.0480;
-                if (random(rand) <= spectrum / maxRefraction) {
-                    auto nextRay = obj->ScatteredRay(ray, 0, rand);
+                const double  spectrumValue = color::spectrumValueFromRGB(obj->material->color(), spectrum);
+                // 0.0480 means max refraction value in xbybzb space
+                const double maxRefraction = 2.1654;
+                if (random(rand) <= spectrumValue / maxRefraction) {
+                    auto nextRay = obj->ScatteredRay(ray, spectrum, rand);
                     auto nextPathTracing = SpectrumPathtracing(nextRay,spectrum, data, rand);
-                    return maxRefraction * nextPathTracing + spectrumFromRGB(obj->material->emission());
+                    return maxRefraction * nextPathTracing + color::spectrumValueFromRGB(obj->material->emission(), spectrum);
                 }
                 else {
-                    return spectrumFromRGB(obj->material->emission());
+                    return color::spectrumValueFromRGB(obj->material->emission(), spectrum);
                 }
             }
         }
         return 0;
+    }
+
+    vec3 RenderPathtracing(int samples, const Ray ray, SettingData& data, std::random_device& rnd) {
+        vec3 cal;
+        for (int s = 0; s < samples; ++s) {
+            cal += Pathtracing(ray, data, rnd) / samples;
+        }
+        return cal;
+    }
+
+    struct Spectrum{
+        double spectrum, value;
+        Spectrum(double spectrum, double value)
+        : spectrum(spectrum)
+        , value(value)
+        {}
+        Spectrum()
+        : spectrum(0)
+        , value(0)
+        {}
+    };
+    bool operator< (const Spectrum& a, const Spectrum& b)  noexcept{
+        return a.spectrum < b.spectrum;
+    }
+
+    vec3 RenderSpectrumPathtracing(int samples, int spectrumSamples, const Ray ray, SettingData& data, std::random_device& rnd) {
+        double xyzNormalize = 0;
+        for (int wave=color::MIN_WAVELENGTH; wave <= color::MAX_WAVELENGTH; ++wave) {
+            xyzNormalize += color::xbybzbFromWavelength(wave).y;
+        }
+        std::vector<Spectrum> spectrums;
+        Spectrum cal;
+        for (int spec=0;spec< spectrumSamples ;spec++) {
+            cal.spectrum = random(rnd) * 440.0 + 390;
+            cal.value = 0;
+            for (int s=0;s < samples; ++s) {
+                cal.value += SpectrumPathtracing(ray, cal.spectrum, data, rnd) / data.samples;
+            }
+            spectrums.push_back(cal);
+        }
+        std::sort(spectrums.begin(), spectrums.end());
+
+        // spectrum to XYZ
+        auto spectrumsTable = spectrums;
+        spectrumsTable.insert(spectrumsTable.begin(), Spectrum(color::MIN_WAVELENGTH,0));
+        spectrumsTable.insert(spectrumsTable.end(), Spectrum(color::MAX_WAVELENGTH,0));
+        vec3 XYZ;
+        int waveIndex = 0;
+        for (int wave=color::MIN_WAVELENGTH; wave <= color::MAX_WAVELENGTH; ++wave) {
+            if (waveIndex < spectrumsTable.size()) {
+                const double progress = (wave - spectrumsTable[waveIndex].spectrum) / (spectrumsTable[waveIndex + 1].spectrum - spectrumsTable[waveIndex].spectrum);
+                const double spectrumValueLerped = spectrumsTable[waveIndex].value + progress * (spectrumsTable[waveIndex+1].value - spectrumsTable[waveIndex].value );
+                XYZ.x += color::xbybzbFromWavelength(wave).x * spectrumValueLerped / xyzNormalize;
+                XYZ.y += color::xbybzbFromWavelength(wave).y * spectrumValueLerped / xyzNormalize;
+                XYZ.z += color::xbybzbFromWavelength(wave).z * spectrumValueLerped / xyzNormalize;
+
+                if (wave >= spectrumsTable[waveIndex+1].spectrum) {
+                    ++waveIndex;
+                }
+            }
+        }
+
+        // XYZ to RGB
+        auto RGB = color::rgbFromXyz(XYZ);
+
+        return RGB;
     }
 
 	void Renderer::Render(std::string fileName) {
@@ -131,40 +197,31 @@ namespace png {
 
 		for (int y = 0; y < data.height; ++y) {
 			std::cout << y << " / " << data.height << std::endl;
-#ifdef _DEBUG
-#else
+//#ifdef _DEBUG
+//#else
 #pragma omp parallel for
-#endif
+//#endif
 
 			for (int x = 0; x < data.width; ++x) {
 				vec3 accumulatedColor = vec3(0, 0, 0);
 				for (int sx = 1; sx <= data.superSamples; ++sx) {
 					for (int sy = 1; sy <= data.superSamples; ++sy) {
-						for (int s = 0; s < data.samples; ++s) {
 							const float rate = 1.0 / (1 + data.superSamples);
 							vec3 dir = Normalize(
 								l_camX * fovx * (2.0f * ((double)x + rate * sx) / data.width - 1.0f) +
 								l_camY * fovy * (2.0f * ((double)y + rate * sy) / data.height - 1.0f) +
 								l_camZ
 							);
+
                             vec3 cal;
                             if (renderingMode == 0) {
-                                cal = Pathtracing(Ray(data.camera.origin, dir), data, rnd) /
-                                      data.superSamples / data.superSamples / data.samples;
+                                cal = RenderPathtracing(data.samples, Ray(data.camera.origin, dir), data, rnd);
                             }else if (renderingMode == 1) {
-                                // add spectrum and value struct
-                                std::vector<double> specturms;
-                                for (int spec=0;spec<2;spec++) {
-                                    const double spectrum = random(rnd) * 440.0 + 390;
-                                    const auto calSpectrum =
-                                            SpectrumPathtracing(Ray(data.camera.origin, dir), spectrum, data, rnd) /
-                                            data.superSamples / data.superSamples / data.samples;
-
-                                }
+                                cal = RenderSpectrumPathtracing(data.samples, 10, Ray(data.camera.origin, dir), data,
+                                                                rnd);
                             }
 							cal = clampColor(cal, 0, 1);
-							accumulatedColor += cal;
-						}
+							accumulatedColor += cal / data.superSamples / data.superSamples;
 					}
 				}
 				image[x * 3 + y * data.width * 3] += accumulatedColor.x;
