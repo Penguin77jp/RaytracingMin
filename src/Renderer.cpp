@@ -96,12 +96,10 @@ namespace png {
             auto& obj = data.object[hitObject];
             if (dis > 0) {
                 const double  spectrumValue = color::spectrumValueFromRGB(obj->material->color(), spectrum);
-                // 0.0480 means max refraction value in xbybzb space
-                const double maxRefraction = 2.1654;
-                if (random(rand) <= spectrumValue / maxRefraction) {
+                if (random(rand) <= spectrumValue) {
                     auto nextRay = obj->ScatteredRay(ray, spectrum, rand);
                     auto nextPathTracing = SpectrumPathtracing(nextRay,spectrum, data, rand);
-                    return maxRefraction * nextPathTracing + color::spectrumValueFromRGB(obj->material->emission(), spectrum);
+                    return nextPathTracing + color::spectrumValueFromRGB(obj->material->emission(), spectrum);
                 }
                 else {
                     return color::spectrumValueFromRGB(obj->material->emission(), spectrum);
