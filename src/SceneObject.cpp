@@ -7,9 +7,6 @@ namespace png {
 		: m_color(color)
 		, m_emission(emission)
 	{}
-	vec3 Material::colorKD() const {
-		return color() / kd();
-	}
 	float Material::kd() const {
 		return std::max(std::max(color().x, color().y), color().z);
 	}
@@ -28,11 +25,8 @@ namespace png {
 	{}
 	Ray DiffuseMaterial::ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 hitedNormal, const double spectrum, std::random_device& rand) const {
 		Ray nextRay;
-		return nextRay;
-		/*
-		const auto normalHitedPoint = Normalize(hitPoint - this->position());
-		const auto orienting_normal = Dot(normalHitedPoint, refRay.dir) < 0.0
-			? normalHitedPoint : (normalHitedPoint * -1.0);
+		const auto orienting_normal = Dot(hitedNormal, refRay.dir) < 0.0
+			? hitedNormal : (hitedNormal * -1.0);
 		nextRay.org = hitPoint;
 		vec3 u, v, w;
 		w = orienting_normal;
@@ -52,7 +46,6 @@ namespace png {
 			w * sqrt(1.0 - r2))
 		);
 		return nextRay;
-		*/
 	}
 
 	SceneObject::SceneObject(Material* mat)
@@ -92,8 +85,8 @@ namespace png {
 	Ray SphereObject::ScatteredRay(const Ray refRay, const double spectrum, std::random_device& rand) const {
 		const auto distance = HitDistance(refRay);
 		const auto hitPoint = refRay.dir * distance + refRay.org;
-		return material->ScatteredRay(refRay, hitPoint, spectrum, rand);
-		return Ray();
+        const auto normalVec = Normalize(hitPoint - this->position());
+		return material->ScatteredRay(refRay, hitPoint, normalVec ,spectrum, rand);
 	}
 	//vec3 SphereObject::Normal(vec3) const { return vec3(); }
 

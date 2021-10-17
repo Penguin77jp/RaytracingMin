@@ -3,7 +3,9 @@ project(RaytracingMin)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(RaytracingMin json/include stb src/*.h)
+# enable openmp
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xpreprocessor -fopenmp")
 
+include_directories(RaytracingMin json/include stb src/*.h)
 file(GLOB CXX_FILES src/*.cpp)
 add_executable(RaytracingMin src/main.cpp ${CXX_FILES})

@@ -66,7 +66,7 @@ namespace png {
 				if (random(rand) <= obj->material->kd()) {
 					auto nextRay = obj->ScatteredRay(ray, 0, rand);
 					auto nextPathTracing = PathTracing(nextRay,spectrum, data, rand);
-					return obj->material->colorKD() * nextPathTracing + obj->material->emission();
+					return obj->material->color() / obj->material->kd() * nextPathTracing + obj->material->emission();
 				}
 				else {
 					return obj->material->emission();
@@ -106,7 +106,7 @@ namespace png {
 								l_camY * fovy * (2.0f * ((double)y + rate * sy) / data.height - 1.0f) +
 								l_camZ
 							);
-							const double spectrum = 0;
+							const double spectrum = random(rnd)*440.0 + 390;
 							auto cal = PathTracing(Ray(data.camera.origin, dir), spectrum, data, rnd) / data.superSamples / data.superSamples / data.samples;
 							cal = clampColor(cal, 0, 1);
 							accumulatedColor += cal;

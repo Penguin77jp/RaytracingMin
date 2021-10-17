@@ -11,8 +11,8 @@ int main(int argc, char* argv[]) {
 		std::string command = argv[i];
 		if (command == "-?") {
 			std::cout << "Usage: RaytracingMin.exe [OPTION]..." << std::endl << std::endl
-				<< "-sampleJson : サンプルシーンのjsonファイルを保存 ファイル名:settingData.json" << std::endl
-				<< "-json : jsonファイルの指定 指定しない場合はsettingData.jsonで読み込む" << std::endl;
+				<< "-sampleJson : save sample json file. file name is settingData.json" << std::endl
+				<< "-json : specify json file. If you don't specify json file, automatically specify settingData.json." << std::endl;
 			return 0;
 		}
 		else if (command == "-json") {
@@ -27,18 +27,18 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		else if (command == "-sampleJson") {
-			std::cout << "サンプルシーンのjsonファイルを保存 ファイル名:settingData.json" << std::endl;
+			std::cout << "export sample json file." << std::endl;
 			png::LoadData::SaveSampleJson("settingData.json");
 			return 0;
 		}
-	}
+    }
 
 	if (!std::filesystem::exists(jsonFile)) {
-		std::cout << "サンプルシーンのjsonファイルを保存 ファイル名:settingData.json" << std::endl;
+		std::cout << "export sample json file." << std::endl;
 		png::LoadData::SaveSampleJson(jsonFile);
 	}
-	std::cout << jsonFile << "を読み込みレンダリング開始" << std::endl;
-	png::LoadData loadData(jsonFile);
+	std::cout << jsonFile << " is loaded" << std::endl;
+    png::LoadData loadData(jsonFile);
 	png::Renderer renderer(loadData.data);
 
 	renderer.Render("result");

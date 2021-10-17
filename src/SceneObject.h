@@ -7,8 +7,7 @@ namespace png {
 	class Material {
 	public:
 		Material(vec3 color, vec3 emission);
-		virtual Ray ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 hitedNormal, const double spectrum, std::random_device& rand) const = 0;
-		vec3 colorKD() const;
+		virtual Ray ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 normalVec, const double spectrum, std::random_device& rand) const = 0;
 		float kd() const;
 		vec3 color() const;
 		vec3 emission() const;
@@ -19,12 +18,12 @@ namespace png {
 	class RefractionMaterial : public Material {
 	public:
 		RefractionMaterial(vec3 color, vec3 emission);
-		Ray ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 hitedNormal, const double spectrum, std::random_device& rand) const;
+		Ray ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 normalVec, const double spectrum, std::random_device& rand) const;
 	};
 	class DiffuseMaterial : public Material {
 	public:
 		DiffuseMaterial(vec3 color, vec3 emission);
-		Ray ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 hitedNormal, const double spectrum, std::random_device& rand) const;
+		Ray ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 normalVec, const double spectrum, std::random_device& rand) const;
 	};
 
 	class SceneObject {
