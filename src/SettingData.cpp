@@ -131,6 +131,7 @@ namespace png {
 			else if (it.key() == "00 height") data.height = it.value();
 			else if (it.key() == "00 samples") data.samples = it.value();
 			else if (it.key() == "00 superSamples") data.superSamples = it.value();
+			else if (it.key() == "00 spectrumSamples") data.spectrumSamples = it.value();
 			else if (it.key() == "01 camera") {
 				for (auto& it_cam : it.value().items()) {
 					if (it_cam.key() == "origin") {

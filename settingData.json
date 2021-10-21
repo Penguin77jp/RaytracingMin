@@ -1,8 +1,8 @@
 {
     "00 height": 252,
-    "00 samples": 10,
+    "00 samples": 200,
     "00 superSamples": 1,
-    "00 spectrumSampling" : 1,
+    "00 spectrumSamples": 500,
     "00 width": 480,
     "01 camera": {
         "fov": 2,
