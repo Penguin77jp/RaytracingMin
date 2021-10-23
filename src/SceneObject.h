@@ -2,12 +2,13 @@
 
 #include "Ray.h"
 #include "Random.h"
+#include "HitRecord.h"
 
 namespace png {
 	class Material {
 	public:
 		Material(vec3 color, vec3 emission);
-		virtual Ray ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 normalVec, const double spectrum, std::random_device& rand) const = 0;
+		virtual Ray ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, std::random_device& rand) const = 0;
 		float kd() const;
 		vec3 color() const;
 		vec3 emission() const;
@@ -18,12 +19,12 @@ namespace png {
 	class RefractionMaterial : public Material {
 	public:
 		RefractionMaterial(vec3 color, vec3 emission);
-		Ray ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 normalVec, const double spectrum, std::random_device& rand) const;
+		Ray ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, std::random_device& rand) const;
 	};
 	class DiffuseMaterial : public Material {
 	public:
 		DiffuseMaterial(vec3 color, vec3 emission);
-		Ray ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 normalVec, const double spectrum, std::random_device& rand) const;
+		Ray ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, std::random_device& rand) const;
 	};
 
 	class SceneObject {
@@ -32,14 +33,14 @@ namespace png {
 		Material* material;
 		bool Hitable(const Ray& ray) const;
 		virtual double HitDistance(const Ray& ray) const = 0;
-		virtual Ray ScatteredRay(const Ray refRay, const double spectrum, std::random_device& rand) const = 0;
+		virtual Ray ScatteredRay(const Ray& refRay, HitRecord& hitrecord, const double spectrum, std::random_device& rand) const = 0;
 		//virtual vec3 Normal(vec3 posi) const = 0;
 	};
 	class SphereObject : public SceneObject {
 	public:
 		SphereObject(vec3 posi, float size, Material* mat);
 		double HitDistance(const Ray& ray) const;
-		Ray ScatteredRay(Ray refRay, double spectrum, std::random_device& rand) const;
+		Ray ScatteredRay(const Ray& refRay, HitRecord& hitrecord, const double spectrum, std::random_device& rand) const;
 		//vec3 Normal(vec3) const;
 
 		void SetPosition(vec3 posi);

@@ -1,11 +1,11 @@
 {
-    "00 height": 252,
-    "00 samples": 200,
-    "00 superSamples": 1,
-    "00 spectrumSamples": 500,
-    "00 width": 480,
+    "00 height": 720,
+    "00 samples": 40,
+    "00 superSamples": 2,
+    "00 spectrumSamples": 20,
+    "00 width": 1280,
     "01 camera": {
-        "fov": 2,
+        "fov": 0.7,
         "origin": [
             0.0,
             0.0,
@@ -13,7 +13,7 @@
         ],
         "target": [
             0,
-            0,
+            -3,
             0
         ],
         "upVec": [
@@ -29,10 +29,10 @@
                 "00 objectType": 0,
                 "01 position": [
                     0,
-                    10,
+                    109.6,
                     0
                 ],
-                "02 size": 5,
+                "02 size": 100,
                 "03 material": {
                     "type": 0,
                     "color": [
@@ -157,28 +157,48 @@
                     ]
                 }
             },
-            {
-                "00 objectType": 0,
-                "01 position": [
-                    0,
-                    0,
-                    -10010
-                ],
-                "02 size": 10000,
-                "03 material": {
-                    "type": 0,
-                    "color": [
-                        0.25,
-                        0.9,
-                        0.9
-                    ],
-                    "emission": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ]
-                }
+          {
+            "00 objectType": 0,
+            "01 position": [
+              0,
+              0,
+              -10010
+            ],
+            "02 size": 10000,
+            "03 material": {
+              "type": 0,
+              "color": [
+                0.25,
+                0.9,
+                0.9
+              ],
+              "emission": [
+                0.0,
+                0.0,
+                0.0
+              ]
             }
+          },
+          {
+            "00 objectType": 0,
+            "01 position": [
+              0,
+              -3,
+              0
+            ],
+            "02 size": 3,
+            "03 material": {
+              "type": 1,
+              "color": [
+                0.9,0.9,0.9
+              ],
+              "emission": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          }
         ]
     }
 }

@@ -1,5 +1,6 @@
 #include "SceneObject.h"
 #include "Constant.h"
+#include "Color.h"
 
 
 namespace png {
@@ -16,18 +17,58 @@ namespace png {
 	RefractionMaterial::RefractionMaterial(vec3 color, vec3 emission)
 		: Material(color, emission)
 	{}
-	Ray RefractionMaterial::ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 hitedNormal, const double spectrum, std::random_device& rand) const {
-		return Ray();
+
+	static double reflectance(double cosine, double ref_idx) {
+		// Use Schlick's approximation for reflectance.
+		auto r0 = (1 - ref_idx) / (1 + ref_idx);
+		r0 = r0 * r0;
+		return r0 + (1 - r0) * pow((1 - cosine), 5);
+	}
+
+	inline vec3 reflect(const vec3& v, const vec3& n) {
+		return v - 2 * Dot(v, n) * n;
+	}
+
+	double length_squared(const vec3& e) {
+		return e.x * e.x + e.y * e.y + e.z * e.z;
+	}
+
+	inline vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
+		auto cos_theta = fmin(Dot(-uv, n), 1.0);
+		vec3 r_out_perp = etai_over_etat * (uv + cos_theta * n);
+		vec3 r_out_parallel = -sqrt(fabs(1.0 - length_squared(r_out_perp))) * n;
+		return r_out_perp + r_out_parallel;
+	}
+
+	Ray RefractionMaterial::ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, std::random_device& rand) const {
+		double ir = 1.5;
+		ir = 1.0 + (spectrum - color::MIN_WAVELENGTH) / (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) * 1.0;
+		double refraction_ratio = rec.front_face ? (1.0 / ir) : ir;
+
+		vec3 unit_direction = Normalize(refRay.dir);
+		double cos_theta = fmin(Dot(-unit_direction, rec.normal), 1.0);
+		double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+
+		bool cannot_refract = refraction_ratio * sin_theta > 1.0;
+		vec3 direction;
+
+		if (cannot_refract || reflectance(cos_theta, refraction_ratio) > RandomGenerate(rand))
+			direction = reflect(unit_direction, rec.normal);
+		else
+			direction = refract(unit_direction, rec.normal, refraction_ratio);
+
+		auto scattered = Ray(rec.point, direction);
+		return scattered;
 	}
 
 	DiffuseMaterial::DiffuseMaterial(vec3 color, vec3 emission)
 		: Material(color, emission)
 	{}
-	Ray DiffuseMaterial::ScatteredRay(const Ray refRay, const vec3 hitPoint, const vec3 hitedNormal, const double spectrum, std::random_device& rand) const {
+	Ray DiffuseMaterial::ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, std::random_device& rand) const {
 		Ray nextRay;
-		const auto orienting_normal = Dot(hitedNormal, refRay.dir) < 0.0
-			? hitedNormal : (hitedNormal * -1.0);
-		nextRay.org = hitPoint;
+		const auto orienting_normal = Dot(rec.normal, refRay.dir) < 0.0
+			? rec.normal : (rec.normal * -1.0);
+		nextRay.org = rec.point;
 		vec3 u, v, w;
 		w = orienting_normal;
 		const auto r1 = 2 * PI * RandomGenerate(rand);
@@ -82,11 +123,18 @@ namespace png {
 			return t2;
 		}
 	}
-	Ray SphereObject::ScatteredRay(const Ray refRay, const double spectrum, std::random_device& rand) const {
+	Ray SphereObject::ScatteredRay(const Ray& refRay, HitRecord& hitrecord, const double spectrum, std::random_device& rand) const {
 		const auto distance = HitDistance(refRay);
 		const auto hitPoint = refRay.dir * distance + refRay.org;
         const auto normalVec = Normalize(hitPoint - this->position());
-		return material->ScatteredRay(refRay, hitPoint, normalVec ,spectrum, rand);
+
+		hitrecord.t = distance;
+		hitrecord.point = refRay.org + distance * refRay.dir;
+		vec3 outwardNormal = (hitrecord.point - this->position()) / this->size();
+		hitrecord.set_face_normal(refRay, outwardNormal);
+		//hitrecord.mat_ptr = material;
+
+		return material->ScatteredRay(refRay, hitrecord ,spectrum, rand);
 	}
 	//vec3 SphereObject::Normal(vec3) const { return vec3(); }
 

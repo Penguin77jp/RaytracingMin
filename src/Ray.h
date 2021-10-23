@@ -24,9 +24,6 @@ namespace png {
 		vec3 operator *(const vec3& a) const {
 			return vec3(this->x * a.x, this->y * a.y, this->z * a.z);
 		}
-		vec3 operator* (double a) const {
-			return vec3(this->x * a, this->y * a, this->z * a);
-		}
 		vec3 operator /(const vec3& a) const {
 			return vec3(this->x / a.x, this->y / a.y, this->z / a.z);
 		}
@@ -50,6 +47,13 @@ namespace png {
 		}
 	};
 
+	inline vec3 operator *(const vec3 a, const double t) {
+		return vec3(a.x * t, a.y * t, a.z * t);
+	}
+	inline vec3 operator *(const double t, const vec3 a) {
+		return a * t;
+	}
+
 	class Ray {
 	public:
 		vec3 org, dir;
@@ -58,7 +62,7 @@ namespace png {
 	};
 }
 
-static double Dot(const png::vec3 & a, const png::vec3& b) {
+static double Dot(const png::vec3& a, const png::vec3& b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 static png::vec3 Cross(const png::vec3& a, const png::vec3& b) {

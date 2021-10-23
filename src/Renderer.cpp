@@ -67,7 +67,8 @@ namespace png {
 			auto& obj = data.object[hitObject];
 			if (dis > 0) {
 				if (random(rand) <= obj->material->kd()) {
-					auto nextRay = obj->ScatteredRay(ray, 0, rand);
+					HitRecord nextRec;
+					auto nextRay = obj->ScatteredRay(ray, nextRec,  0, rand);
 					auto nextPathTracing = Pathtracing(nextRay, data, rand);
 					return obj->material->color() / obj->material->kd() * nextPathTracing + obj->material->emission();
 				}
@@ -99,7 +100,8 @@ namespace png {
 			if (dis > 0) {
 				const double  spectrumValue = color::spectrumValueFromRGB(obj->material->color(), spectrum);
 				if (random(rand) <= spectrumValue) {
-					auto nextRay = obj->ScatteredRay(ray, spectrum, rand);
+					HitRecord nextRec;
+					auto nextRay = obj->ScatteredRay(ray, nextRec, spectrum, rand);
 					auto nextPathTracing = SpectrumPathtracing(nextRay, spectrum, data, rand);
 					return nextPathTracing + color::spectrumValueFromRGB(obj->material->emission(), spectrum);
 				}
@@ -135,10 +137,13 @@ namespace png {
 	}
 
 	vec3 RenderSpectrumPathtracing(int samples, int spectrumSamples, const Ray ray, SettingData& data, std::random_device& rnd) {
-		double xyzNormalize = 0;
+		/*
 		for (int wave = color::MIN_WAVELENGTH; wave <= color::MAX_WAVELENGTH; ++wave) {
 			xyzNormalize += color::xbybzbFromWavelength(wave).y;
 		}
+		*/
+		double xyzNormalize = 106.91612160775612;
+
 		std::vector<Spectrum> spectrums(spectrumSamples);
 		for (int spec = 0; spec < spectrumSamples; ++spec) {
 			auto& cal = spectrums[spec];
@@ -155,27 +160,25 @@ namespace png {
 		auto spectrumsTable = spectrums;
 		spectrumsTable.insert(spectrumsTable.begin(), Spectrum(color::MIN_WAVELENGTH, 0));
 		spectrumsTable.insert(spectrumsTable.end(), Spectrum(color::MAX_WAVELENGTH, 0));
-		/*
 		if (ISDEBUG()) {
 			for (int i = 0; i < spectrumsTable.size(); ++i) {
 				std::cout << spectrumsTable[i].spectrum << "nm " << spectrumsTable[i].value << std::endl;
 			}
 		}
-		*/
-		vec3 XYZ;
-		int waveIndex = 0;
-		for (int wave = color::MIN_WAVELENGTH; wave <= color::MAX_WAVELENGTH; ++wave) {
-			if (waveIndex < spectrumsTable.size()) {
-				const double progress = (wave - spectrumsTable[waveIndex].spectrum) / (spectrumsTable[waveIndex + 1].spectrum - spectrumsTable[waveIndex].spectrum);
-				const double spectrumValueLerped = spectrumsTable[waveIndex].value + progress * (spectrumsTable[waveIndex + 1].value - spectrumsTable[waveIndex].value);
-				XYZ.x += color::xbybzbFromWavelength(wave).x * spectrumValueLerped / xyzNormalize;
-				XYZ.y += color::xbybzbFromWavelength(wave).y * spectrumValueLerped / xyzNormalize;
-				XYZ.z += color::xbybzbFromWavelength(wave).z * spectrumValueLerped / xyzNormalize;
 
-				if (wave >= spectrumsTable[waveIndex + 1].spectrum) {
-					++waveIndex;
-				}
-			}
+
+		vec3 XYZ;
+		for (int index = 0; index < spectrumsTable.size() - 1; ++index) {
+			double dx = spectrumsTable[index + 1].spectrum - spectrumsTable[index].spectrum;
+			XYZ.x += (color::xbybzbFromWavelength(spectrumsTable[index + 1].spectrum).x * spectrumsTable[index + 1].value
+				+ color::xbybzbFromWavelength(spectrumsTable[index].spectrum).x * spectrumsTable[index].value
+				) * dx * 0.5 / xyzNormalize;
+			XYZ.y += (color::xbybzbFromWavelength(spectrumsTable[index + 1].spectrum).y * spectrumsTable[index + 1].value
+				+ color::xbybzbFromWavelength(spectrumsTable[index].spectrum).y * spectrumsTable[index].value
+				) * dx * 0.5 / xyzNormalize;
+			XYZ.z += (color::xbybzbFromWavelength(spectrumsTable[index + 1].spectrum).z * spectrumsTable[index + 1].value
+				+ color::xbybzbFromWavelength(spectrumsTable[index].spectrum).z * spectrumsTable[index].value
+				) * dx * 0.5 / xyzNormalize;
 		}
 
 		// XYZ to RGB
@@ -184,93 +187,12 @@ namespace png {
 		return RGB;
 	}
 
-	void DebugSpectrum() {
-
-	}
-
 	void Renderer::Render(std::string fileName) {
 		/*
 		 *  Rendering Mode
 		 *  0 : normal pathtracing
 		 *  1: spectrum pathtracing
 		 */
-		const int renderingMode = 1;
-		//dir
-		auto direction = Normalize(data.camera.target - data.camera.origin);
-		auto l_camX = -Normalize(Cross(direction, data.camera.upVec));
-		auto l_camY = Cross(l_camX, direction);
-		auto l_camZ = direction;
-		//fov
-		double fovx = data.camera.fov;
-		double fovy = fovx * data.height / data.width;
-		//random
-		std::random_device rnd;
-
-		std::vector<int> spectrums{1,3,5,10,20,30,50,100,200,300,500};
-		for (auto ss : spectrums) {
-			for (int y = 0; y < data.height; ++y) {
-				std::cout << y << " / " << data.height << std::endl;
-#ifdef _DEBUG
-#else
-#pragma omp parallel for
-#endif
-
-				for (int x = 0; x < data.width; ++x) {
-					/*
-					if (ISDEBUG()) {
-						//y = data.height - 130;
-						//x = 230;
-					}
-					*/
-					vec3 accumulatedColor = vec3(0, 0, 0);
-					for (int sx = 1; sx <= data.superSamples; ++sx) {
-						for (int sy = 1; sy <= data.superSamples; ++sy) {
-							const float rate = 1.0 / (1 + data.superSamples);
-							vec3 dir = Normalize(
-								l_camX * fovx * (2.0f * ((double)x + rate * sx) / data.width - 1.0f) +
-								l_camY * fovy * (2.0f * ((double)y + rate * sy) / data.height - 1.0f) +
-								l_camZ
-							);
-
-							vec3 cal;
-							if (renderingMode == 0) {
-								cal = RenderPathtracing(data.samples, Ray(data.camera.origin, dir), data, rnd);
-							}
-							else if (renderingMode == 1) {
-								cal = RenderSpectrumPathtracing(data.samples, ss, Ray(data.camera.origin, dir), data,
-									rnd);
-							}
-							cal = clampColor(cal, 0, 1);
-							accumulatedColor += cal / data.superSamples / data.superSamples;
-						}
-					}
-					image[x * 3 + y * data.width * 3] += accumulatedColor.x;
-					image[x * 3 + y * data.width * 3 + 1] += accumulatedColor.y;
-					image[x * 3 + y * data.width * 3 + 2] += accumulatedColor.z;
-				}
-			}
-			auto resultImage = std::vector<unsigned char>(data.width * data.height * 3);
-			for (int i = 0; i < resultImage.size(); ++i) {
-				resultImage[i] = (unsigned char)255 * std::min(image[i], 1.0);
-			}
-
-			stbi_write_jpg((fileName+ std::to_string(ss) + ".jpg").c_str(), data.width, data.height, 3, resultImage.data(), 60);
-			//stbi_write_bmp((fileName + std::to_string(ss) + ".bmp").c_str(), data.width, data.height, 3, resultImage.data());
-
-			//reset
-			image = std::vector<double>();
-		}
-		return;
-
-
-		/*
-		 *  Rendering Mode
-		 *  0 : normal pathtracing
-		 *  1: spectrum pathtracing
-		 */
-		 /*
-
-		 DEBUG
 
 		const int renderingMode = 1;
 		//dir
@@ -326,7 +248,6 @@ namespace png {
 
 		stbi_write_jpg((fileName + ".jpg").c_str(), data.width, data.height, 3, resultImage.data(), 60);
 		stbi_write_bmp((fileName + ".bmp").c_str(), data.width, data.height, 3, resultImage.data());
- */
 
 	}
 }

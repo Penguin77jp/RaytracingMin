@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Color.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Random.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
@@ -32,6 +33,7 @@
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\SceneObject.h" />
     <ClInclude Include="src\SettingData.h" />
+    <ClInclude Include="src\HitRecord.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

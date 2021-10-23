@@ -182,6 +182,17 @@ namespace png {
 									emission.z = it_object.value()["03 material"]["emission"][2];
 									mat = new DiffuseMaterial(color, emission);
 								}
+								else if (materialType == 1) {
+									vec3 color;
+									color.x = it_object.value()["03 material"]["color"][0];
+									color.y = it_object.value()["03 material"]["color"][1];
+									color.z = it_object.value()["03 material"]["color"][2];
+									vec3 emission;
+									emission.x = it_object.value()["03 material"]["emission"][0];
+									emission.y = it_object.value()["03 material"]["emission"][1];
+									emission.z = it_object.value()["03 material"]["emission"][2];
+									mat = new RefractionMaterial(color, emission);
+								}
 								
 								tmp = new SphereObject(posi,size,mat);
 							}
