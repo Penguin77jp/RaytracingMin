@@ -1,11 +1,15 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <omp.h>
 
 #include "Renderer.h"
 #include "SettingData.h"
 
 int main(int argc, char* argv[]) {
+	// max threads
+	std::cout << "max threads : " << omp_get_max_threads() << std::endl; 
+	
 	std::string jsonFile = "settingData.json";
 	for (int i = 1; i < argc; ++i) {
 		std::string command = argv[i];
@@ -37,7 +41,7 @@ int main(int argc, char* argv[]) {
 		std::cout << "export sample json file." << std::endl;
 		png::LoadData::SaveSampleJson(jsonFile);
 	}
-	std::cout << jsonFile << " is loaded" << std::endl;
+	std::cout << jsonFile << " loaded" << std::endl;
     png::LoadData loadData(jsonFile);
 	png::Renderer renderer(loadData.data);
 

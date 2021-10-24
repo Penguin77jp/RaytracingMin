@@ -1,9 +1,10 @@
 #pragma once
+
+#include "SettingData.h"
+
 #include <string>
 #include <nlohmann/json.hpp>
 #include <vector>
-
-#include "SettingData.h"
 
 namespace png {
 	class Renderer {

@@ -62,15 +62,15 @@ namespace png {
 	};
 }
 
-static double Dot(const png::vec3& a, const png::vec3& b) {
+static inline double Dot(const png::vec3& a, const png::vec3& b) {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
-static png::vec3 Cross(const png::vec3& a, const png::vec3& b) {
+static inline png::vec3 Cross(const png::vec3& a, const png::vec3& b) {
 	return png::vec3(a.y * b.z - a.z * b.y, -a.x * b.z + a.z * b.x, a.x * b.y - a.y * b.x);
 }
-static double Magnitude(const png::vec3& a) {
-	return std::sqrtf(a.x * a.x + a.y * a.y + a.z * a.z);
+static inline double Magnitude(const png::vec3& a) {
+	return std::sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
 }
-static png::vec3 Normalize(const png::vec3& a) {
+static inline png::vec3 Normalize(const png::vec3& a) {
 	return  a / Magnitude(a);
 }

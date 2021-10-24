@@ -6,6 +6,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <iostream>
+#include <omp.h>
 
 namespace png {
 	using RandType = std::mt19937;
@@ -48,7 +49,7 @@ namespace png {
 #endif
 	}
 
-	vec3 Pathtracing(const Ray ray, SettingData& data, std::random_device& rand) {
+	vec3 Pathtracing(const Ray ray, SettingData& data, Random& rand) {
 		int hitObject = -1;
 		double dis = std::numeric_limits<double>::max();
 		{
@@ -66,7 +67,7 @@ namespace png {
 		if (hitObject != -1) {
 			auto& obj = data.object[hitObject];
 			if (dis > 0) {
-				if (random(rand) <= obj->material->kd()) {
+				if (rand.RandomGenerate() <= obj->material->kd()) {
 					HitRecord nextRec;
 					auto nextRay = obj->ScatteredRay(ray, nextRec,  0, rand);
 					auto nextPathTracing = Pathtracing(nextRay, data, rand);
@@ -80,7 +81,7 @@ namespace png {
 		return vec3();
 	}
 
-	double SpectrumPathtracing(const Ray ray, const double spectrum, SettingData& data, std::random_device& rand) {
+	double SpectrumPathtracing(const Ray ray, const double spectrum, SettingData& data, Random& rand) {
 		int hitObject = -1;
 		double dis = std::numeric_limits<double>::max();
 		{
@@ -99,7 +100,7 @@ namespace png {
 			auto& obj = data.object[hitObject];
 			if (dis > 0) {
 				const double  spectrumValue = color::spectrumValueFromRGB(obj->material->color(), spectrum);
-				if (random(rand) <= spectrumValue) {
+				if (rand.RandomGenerate() <= spectrumValue) {
 					HitRecord nextRec;
 					auto nextRay = obj->ScatteredRay(ray, nextRec, spectrum, rand);
 					auto nextPathTracing = SpectrumPathtracing(nextRay, spectrum, data, rand);
@@ -113,7 +114,7 @@ namespace png {
 		return 0;
 	}
 
-	vec3 RenderPathtracing(int samples, const Ray ray, SettingData& data, std::random_device& rnd) {
+	vec3 RenderPathtracing(int samples, const Ray ray, SettingData& data, Random& rnd) {
 		vec3 cal;
 		for (int s = 0; s < samples; ++s) {
 			cal += Pathtracing(ray, data, rnd) / samples;
@@ -136,7 +137,7 @@ namespace png {
 		return a.spectrum < b.spectrum;
 	}
 
-	vec3 RenderSpectrumPathtracing(int samples, int spectrumSamples, const Ray ray, SettingData& data, std::random_device& rnd) {
+	vec3 RenderSpectrumPathtracing(int samples, int spectrumSamples, const Ray ray, SettingData& data, Random& rnd) {
 		/*
 		for (int wave = color::MIN_WAVELENGTH; wave <= color::MAX_WAVELENGTH; ++wave) {
 			xyzNormalize += color::xbybzbFromWavelength(wave).y;
@@ -147,7 +148,7 @@ namespace png {
 		std::vector<Spectrum> spectrums(spectrumSamples);
 		for (int spec = 0; spec < spectrumSamples; ++spec) {
 			auto& cal = spectrums[spec];
-			cal.spectrum = random(rnd) * (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) + color::MIN_WAVELENGTH;
+			cal.spectrum = rnd.RandomGenerate() * (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) + color::MIN_WAVELENGTH;
 			cal.value = 0;
 			for (int s = 0; s < samples; ++s) {
 				cal.value += SpectrumPathtracing(ray, cal.spectrum, data, rnd) / samples;
@@ -162,7 +163,7 @@ namespace png {
 		spectrumsTable.insert(spectrumsTable.end(), Spectrum(color::MAX_WAVELENGTH, 0));
 		if (ISDEBUG()) {
 			for (int i = 0; i < spectrumsTable.size(); ++i) {
-				std::cout << spectrumsTable[i].spectrum << "nm " << spectrumsTable[i].value << std::endl;
+//				std::cout << spectrumsTable[i].spectrum << "nm " << spectrumsTable[i].value << std::endl;
 			}
 		}
 
@@ -203,8 +204,8 @@ namespace png {
 		//fov
 		double fovx = data.camera.fov;
 		double fovy = fovx * data.height / data.width;
-		//random
-		std::random_device rnd;
+        //random
+        png::Random rnd;
 
 		for (int y = 0; y < data.height; ++y) {
 			std::cout << y << " / " << data.height << std::endl;
@@ -212,7 +213,6 @@ namespace png {
 #else
 #pragma omp parallel for
 #endif
-
 			for (int x = 0; x < data.width; ++x) {
 				vec3 accumulatedColor = vec3(0, 0, 0);
 				for (int sx = 1; sx <= data.superSamples; ++sx) {

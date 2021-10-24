@@ -40,9 +40,9 @@ namespace png {
 		return r_out_perp + r_out_parallel;
 	}
 
-	Ray RefractionMaterial::ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, std::random_device& rand) const {
+	Ray RefractionMaterial::ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, Random& rand) const {
 		double ir = 1.5;
-		ir = 1.0 + (spectrum - color::MIN_WAVELENGTH) / (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) * 1.0;
+		ir = 1.0 + (spectrum - color::MIN_WAVELENGTH) / (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) * 1.5;
 		double refraction_ratio = rec.front_face ? (1.0 / ir) : ir;
 
 		vec3 unit_direction = Normalize(refRay.dir);
@@ -52,7 +52,7 @@ namespace png {
 		bool cannot_refract = refraction_ratio * sin_theta > 1.0;
 		vec3 direction;
 
-		if (cannot_refract || reflectance(cos_theta, refraction_ratio) > RandomGenerate(rand))
+		if (cannot_refract || reflectance(cos_theta, refraction_ratio) > rand.RandomGenerate())
 			direction = reflect(unit_direction, rec.normal);
 		else
 			direction = refract(unit_direction, rec.normal, refraction_ratio);
@@ -64,15 +64,15 @@ namespace png {
 	DiffuseMaterial::DiffuseMaterial(vec3 color, vec3 emission)
 		: Material(color, emission)
 	{}
-	Ray DiffuseMaterial::ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, std::random_device& rand) const {
+	Ray DiffuseMaterial::ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, Random& rand) const {
 		Ray nextRay;
 		const auto orienting_normal = Dot(rec.normal, refRay.dir) < 0.0
 			? rec.normal : (rec.normal * -1.0);
 		nextRay.org = rec.point;
 		vec3 u, v, w;
 		w = orienting_normal;
-		const auto r1 = 2 * PI * RandomGenerate(rand);
-		const auto r2 = RandomGenerate(rand);
+		const auto r1 = 2 * PI * rand.RandomGenerate();
+		const auto r2 = rand.RandomGenerate();
 		const auto r2s = sqrt(r2);
 		if (fabs(w.x) > std::numeric_limits<float>::min()) {
 			u = Normalize(Cross(vec3(0, 1, 0), w));
@@ -123,7 +123,7 @@ namespace png {
 			return t2;
 		}
 	}
-	Ray SphereObject::ScatteredRay(const Ray& refRay, HitRecord& hitrecord, const double spectrum, std::random_device& rand) const {
+	Ray SphereObject::ScatteredRay(const Ray& refRay, HitRecord& hitrecord, const double spectrum, Random& rand) const {
 		const auto distance = HitDistance(refRay);
 		const auto hitPoint = refRay.dir * distance + refRay.org;
         const auto normalVec = Normalize(hitPoint - this->position());

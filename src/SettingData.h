@@ -1,9 +1,11 @@
 #pragma once
+
+#include "Ray.h"
+#include "SceneObject.h"
+
 #include <string>
 #include <cmath>
 #include <nlohmann/json.hpp>
-#include "Ray.h"
-#include "SceneObject.h"
 
 namespace png {
 	struct Camera {
