@@ -42,7 +42,9 @@ namespace png {
 
 	Ray RefractionMaterial::ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, Random& rand) const {
 		double ir = 1.5;
-		ir = 1.0 + (spectrum - color::MIN_WAVELENGTH) / (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) * 1.5;
+		if (spectrum != -1) {
+			ir = 1.0 + (spectrum - color::MIN_WAVELENGTH) / (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) * 1.5;
+		}
 		double refraction_ratio = rec.front_face ? (1.0 / ir) : ir;
 
 		vec3 unit_direction = Normalize(refRay.dir);

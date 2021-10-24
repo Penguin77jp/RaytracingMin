@@ -7,6 +7,7 @@
 #include <stb_image_write.h>
 #include <iostream>
 #include <omp.h>
+#include <ctime>
 
 namespace png {
 	using RandType = std::mt19937;
@@ -69,7 +70,7 @@ namespace png {
 			if (dis > 0) {
 				if (rand.RandomGenerate() <= obj->material->kd()) {
 					HitRecord nextRec;
-					auto nextRay = obj->ScatteredRay(ray, nextRec,  0, rand);
+					auto nextRay = obj->ScatteredRay(ray, nextRec,  -1, rand);
 					auto nextPathTracing = Pathtracing(nextRay, data, rand);
 					return obj->material->color() / obj->material->kd() * nextPathTracing + obj->material->emission();
 				}
@@ -195,7 +196,7 @@ namespace png {
 		 *  1: spectrum pathtracing
 		 */
 
-		const int renderingMode = 1;
+		const int renderingMode = 0;
 		//dir
 		auto direction = Normalize(data.camera.target - data.camera.origin);
 		auto l_camX = -Normalize(Cross(direction, data.camera.upVec));
@@ -207,8 +208,12 @@ namespace png {
         //random
         png::Random rnd;
 
+		std::clock_t start = std::clock();
 		for (int y = 0; y < data.height; ++y) {
-			std::cout << y << " / " << data.height << std::endl;
+			auto progress = (double)y / data.height;
+			auto eclipseMin = (double)(std::clock() - start) / CLOCKS_PER_SEC / 60;
+			auto leftMin = (int)(eclipseMin / progress - eclipseMin);
+			std::cout << y << " / " << data.height << " [left " << leftMin << "min]" << std::endl;
 #ifdef _DEBUG
 #else
 #pragma omp parallel for
