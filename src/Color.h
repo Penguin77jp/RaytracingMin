@@ -77,5 +77,13 @@ namespace png {
         vec3 xyzFromRgb(vec3 RGB);
 
         double spectrumValueFromRGB(const vec3 rgb, const double wavelength);
+
+        namespace CIEXYZ {
+            // XCDF(color::MAX_WAVELENGTH) + YCDF(color::MAX_WAVELENGTH) + ZCDF(color::MAX_WAVELENGTH)
+            constexpr double XYZCDF_NORMALIZE = 341.03504863216904;
+            double XCDF(double x);
+            double YCDF(double x);
+            double ZCDF(double x);
+        }
     }
 }

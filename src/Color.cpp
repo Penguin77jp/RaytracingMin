@@ -4,8 +4,7 @@
 namespace png {
     namespace color {
         double gaussianISO(double x, double mu, double sigma) {
-            double result = (1 / std::sqrt(2 * png::PI) / sigma) * exp(-((x - mu) * (x - mu)) / (2 * sigma * sigma));
-            return result;
+            return (1 / std::sqrt(2 * png::PI) / sigma) * exp(-((x - mu) * (x - mu)) / (2 * sigma * sigma));
         }
 
         double gaussianAISO(double x, double alpha, double mu, double sigma1, double sigma2) {
@@ -73,6 +72,26 @@ namespace png {
             }
         }
 
-
+        namespace CIEXYZ {
+            double gauseAISOCDF(double x, double alpha, double mu, double sigma1, double sigma2) {
+                double sigma;
+                if (x < mu) {
+                    sigma = sigma1;
+                }
+                else {
+                    sigma = sigma2;
+                }
+                    return sqrt(png::PI / 2) * alpha * sigma * (erf(mu / (sqrt(2) * sigma)) + erf((x - mu) / (sqrt(2) * sigma)));
+            }
+            double XCDF(double x) {
+                    return gauseAISOCDF(x, 1.056, 599.8, 37.9, 31.0) + gauseAISOCDF(x, 0.362, 442.0, 16.0, 26.7) + gauseAISOCDF(x, -0.065, 501.1, 20.4, 26.2);
+            }
+            double YCDF(double x) {
+                return gauseAISOCDF(x, 0.821, 568.8, 46.9, 40.5) + gauseAISOCDF(x, 0.286, 530.9, 16.3, 31.1);
+            }
+            double ZCDF(double x) {
+                return gauseAISOCDF(x, 1.217, 437.0, 11.8, 36.0) + gauseAISOCDF(x, 0.681, 459.0, 26.0, 13.8);
+            }
+        }
     }
 }
