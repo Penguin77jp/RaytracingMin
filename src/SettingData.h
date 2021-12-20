@@ -2,19 +2,17 @@
 
 #include "Ray.h"
 #include "SceneObject.h"
+#include "Camera.h"
 
 #include <string>
 #include <cmath>
 #include <nlohmann/json.hpp>
 
 namespace png {
-	struct Camera {
-		vec3 origin, target, upVec;
-		float fov;
-	};
 	struct SettingData {
 		int width, height, samples, superSamples, spectrumSamples;
-		Camera camera;
+		vec3 cameraOrigin, cameraTarget;
+		double fov;
 		std::vector<SceneObject*> object;
 	};
 

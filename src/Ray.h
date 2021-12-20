@@ -53,6 +53,9 @@ namespace png {
 	inline vec3 operator *(const double t, const vec3 a) {
 		return a * t;
 	}
+	inline double pow2(double x) {
+		return x * x;
+	}
 
 	class Ray {
 	public:

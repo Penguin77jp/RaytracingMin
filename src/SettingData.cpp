@@ -16,10 +16,9 @@ namespace png {
 		tmp.height = 540;
 		tmp.samples = 10;
 		tmp.superSamples = 4;
-		tmp.camera.origin = vec3(0, 0, 0);
-		tmp.camera.target = vec3(0, 0, 1);
-		tmp.camera.upVec = vec3(0, 1, 0);
-		tmp.camera.fov = 60;
+		tmp.cameraOrigin = vec3(0, 0, 0);
+		tmp.cameraTarget = vec3(0, 0, 1);
+		tmp.fov = 60;
 
 		/*
 		tmp.object.push_back({
@@ -109,10 +108,9 @@ namespace png {
 			,{"00 samples",data.samples}
 			,{"00 superSamples",data.superSamples}
 			,{"01 camera",{
-				{"origin",{data.camera.origin.x,data.camera.origin.y,data.camera.origin.z}}
-				,{"target",{data.camera.target.x,data.camera.target.y,data.camera.target.z}}
-				,{"upVec",{data.camera.upVec.x,data.camera.upVec.y,data.camera.upVec.z}}
-				,{"fov",data.camera.fov}
+				{"origin",{data.cameraOrigin.x,data.cameraOrigin.y,data.cameraOrigin.z}}
+				,{"target",{data.cameraTarget.x,data.cameraTarget.y,data.cameraTarget.z}}
+				,{"fov",data.fov}
 			}}
 		};
 		for (int i = 0; i < data.object.size(); ++i) {
@@ -135,22 +133,17 @@ namespace png {
 			else if (it.key() == "01 camera") {
 				for (auto& it_cam : it.value().items()) {
 					if (it_cam.key() == "origin") {
-						data.camera.origin.x = it_cam.value()[0];
-						data.camera.origin.y = it_cam.value()[1];
-						data.camera.origin.z = it_cam.value()[2];
+						data.cameraOrigin.x = it_cam.value()[0];
+						data.cameraOrigin.y = it_cam.value()[1];
+						data.cameraOrigin.z = it_cam.value()[2];
 					}
 					else if (it_cam.key() == "target") {
-						data.camera.target.x = it_cam.value()[0];
-						data.camera.target.y = it_cam.value()[1];
-						data.camera.target.z = it_cam.value()[2];
-					}
-					else if (it_cam.key() == "upVec") {
-						data.camera.upVec.x = it_cam.value()[0];
-						data.camera.upVec.y = it_cam.value()[1];
-						data.camera.upVec.z = it_cam.value()[2];
+						data.cameraTarget.x = it_cam.value()[0];
+						data.cameraTarget.y = it_cam.value()[1];
+						data.cameraTarget.z = it_cam.value()[2];
 					}
 					else if (it_cam.key() == "fov") {
-						data.camera.fov = it_cam.value();
+						data.fov = it_cam.value();
 					}
 				}
 			}

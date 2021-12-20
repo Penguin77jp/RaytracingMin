@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <math.h>
 
 #include "Constant.h"
 #include "Ray.h"
@@ -10,8 +11,8 @@ namespace png {
     namespace color {
         // 390nm ~830nm
         // 830 - 390 = 440
-        constexpr double MIN_WAVELENGTH = 390;
-        constexpr double MAX_WAVELENGTH = 830;
+        constexpr double MIN_WAVELENGTH = 380;
+        constexpr double MAX_WAVELENGTH = 780;
 
         /*
         for wavelengthNM = 0:step:1000
@@ -81,9 +82,20 @@ namespace png {
         namespace CIEXYZ {
             // XCDF(color::MAX_WAVELENGTH) + YCDF(color::MAX_WAVELENGTH) + ZCDF(color::MAX_WAVELENGTH)
             constexpr double XYZCDF_NORMALIZE = 341.03504863216904;
-            double XCDF(double x);
-            double YCDF(double x);
-            double ZCDF(double x);
+            constexpr double x_integral = 106.76504616237932261548607350578;
+            constexpr double y_integral = 106.91973463815504343620398716858;
+            constexpr double z_integral = 106.82532490175775630470443615231;
+            constexpr double xyz_integral = 1.24126322162269198124;
+            /*
+                double sample = 1e2;
+                double result = 0;
+                png::Random rand;
+                for (int i = 0; i < sample; ++i) {
+                    auto xi_x = 400 * rand.RandomGenerate() + 380;;
+                    auto xyz = png::color::xbybzbFromWavelength(xi_x);
+                    result += 400.0 * xyz.x * xyz.y * xyz.z / sample;
+                }
+            */
         }
     }
 }
