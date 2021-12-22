@@ -7,6 +7,17 @@ namespace png {
 		nlohmann::json json;
 		jsonStream >> json;
 
+		// innitialize strcut
+		{
+			data.renderType = 0;
+			data.width = data.height = 100;
+			data.samples = data.spectrumSamples = 10;
+			data.superSamples = 1;
+			data.cameraOrigin = vec3();
+			data.cameraTarget = vec3(0, 0, 1);
+			data.fov = 1.0;
+		}
+
 		from_json(json, data);
 	}
 
@@ -188,10 +199,10 @@ namespace png {
 									emission.z = it_object.value()["03 material"]["emission"][2];
 									mat = new RefractionMaterial(color, emission);
 								}
-								
-								tmp = new SphereObject(posi,size,mat);
+
+								tmp = new SphereObject(posi, size, mat);
 							}
-							
+
 							data.object.push_back(tmp);
 						}
 					}
