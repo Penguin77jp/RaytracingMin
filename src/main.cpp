@@ -6,10 +6,18 @@
 #include "Renderer.h"
 #include "SettingData.h"
 
+//debug
+#include <iomanip>
+#include <chrono>
+#include "Color.h"
+
 int main(int argc, char* argv[]) {
+#ifdef _DEBUG
+	std::cout << "==============DEBUG MODE==============" << std::endl;
+#endif
 	// max threads
-	std::cout << "max threads : " << omp_get_max_threads() << std::endl; 
-	
+	std::cout << "max threads : " << omp_get_max_threads() << std::endl;
+
 	std::string jsonFile = "settingData.json";
 	for (int i = 1; i < argc; ++i) {
 		std::string command = argv[i];
@@ -35,17 +43,16 @@ int main(int argc, char* argv[]) {
 			png::LoadData::SaveSampleJson("settingData.json");
 			return 0;
 		}
-    }
+	}
 
 	if (!std::filesystem::exists(jsonFile)) {
 		std::cout << "export sample json file." << std::endl;
 		png::LoadData::SaveSampleJson(jsonFile);
 	}
 	std::cout << jsonFile << " loaded" << std::endl;
-    png::LoadData loadData(jsonFile);
+	png::LoadData loadData(jsonFile);
 	png::Renderer renderer(loadData.data);
-
 	renderer.Render("result");
-	
+
 	return 0;
 }

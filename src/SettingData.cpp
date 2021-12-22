@@ -12,6 +12,7 @@ namespace png {
 
 	void LoadData::SaveSampleJson(std::string fileName) {
 		SettingData tmp;
+		tmp.renderType = 0;
 		tmp.width = 960;
 		tmp.height = 540;
 		tmp.samples = 10;
@@ -125,7 +126,8 @@ namespace png {
 	}
 	void LoadData::from_json(const nlohmann::json& json, SettingData& data) {
 		for (auto& it : json.items()) {
-			if (it.key() == "00 width") data.width = it.value();
+			if (it.key() == "00 renderType") data.renderType = it.value();
+			else if (it.key() == "00 width") data.width = it.value();
 			else if (it.key() == "00 height") data.height = it.value();
 			else if (it.key() == "00 samples") data.samples = it.value();
 			else if (it.key() == "00 superSamples") data.superSamples = it.value();

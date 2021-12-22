@@ -10,7 +10,7 @@
 
 namespace png {
 	struct SettingData {
-		int width, height, samples, superSamples, spectrumSamples;
+		int renderType, width, height, samples, superSamples, spectrumSamples;
 		vec3 cameraOrigin, cameraTarget;
 		double fov;
 		std::vector<SceneObject*> object;

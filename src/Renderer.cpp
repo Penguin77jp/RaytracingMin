@@ -282,11 +282,11 @@ namespace png {
 	double SpectrumPoint_Importance(Random& rand) {
 		while (true) {
 			double xi_x = (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) * rand.RandomGenerate() + color::MIN_WAVELENGTH;
-			auto max = 2.1655154441358; // means max value of x+y+z
+			auto max = 2.165515444135838851735798016306944191455841064453125; // means max value of x+y+z
 			double xi_y = rand.RandomGenerate() * max;
 			auto point = color::xbybzbFromWavelength(xi_x);
 			double y = point.x + point.y + point.z;
-			if (xi_y < y) {
+			if (xi_y <= y) {
 				return xi_x;
 			}
 		}
@@ -320,7 +320,7 @@ namespace png {
 		 *  0 : normal pathtracing
 		 *  1 : spectrum pathtracing
 		 */
-		const int renderingMode = 0;
+		const int renderingMode = data.renderType;
 		double thickness = 1;
 		double radius = 2;
 		double focuce = 10;
@@ -373,7 +373,7 @@ namespace png {
 			resultImage[i] = (unsigned char)255 * std::min(image[i], 1.0);
 		}
 
-		stbi_write_jpg((fileName + ".jpg").c_str(), data.width, data.height, 3, resultImage.data(), 60);
+		stbi_write_jpg((fileName + ".jpg").c_str(), data.width, data.height, 3, resultImage.data(), 100);
 		stbi_write_bmp((fileName + ".bmp").c_str(), data.width, data.height, 3, resultImage.data());
 
 	}
