@@ -159,7 +159,7 @@ namespace png {
 	}
 	void NoLensCamera::GenerateRay(int x, int y, int superSampleX, int superSampleY, double spectrum, Ray& rayIncomingSensor, Ray& generatedRay) {
 		rayIncomingSensor = Ray();
-		const float rate = 1.0 / (1 + superSamples());
+		const auto rate = 1.0 / (1 + superSamples());
 		vec3 dir = Normalize(
 			m_camX * m_fovx * (2.0f * ((double)x + rate * superSampleX) / m_data.width - 1.0f) +
 			m_camY * m_fovy * (2.0f * ((double)y + rate * superSampleY) / m_data.height - 1.0f) +
@@ -186,7 +186,7 @@ namespace png {
 	}
 
 	void PrototypeCamera::GenerateRay(int x, int y, int superSampleX, int superSampleY, double spectrum, Ray& rayIncomingSensor, Ray& generatedRay) {
-		const float rate = 1.0 / (1 + superSamples());
+		const auto rate = 1.0 / (1 + superSamples());
 		Ray lensRay;
 		lensRay.org = vec3((2.0 * ((double)x + rate * superSampleX) / m_data.width - 1.0)
 			, 2.0 * ((double)y + rate * superSampleY) / m_data.height - 1.0, -2);

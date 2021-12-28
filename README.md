@@ -23,3 +23,6 @@ jsonファイルから設定を読み込みレイトレーシングをして、�
 - [nlohmann/json](https://github.com/nlohmann/json)
 
 - [nothings/stb](https://github.com/nothings/stb)
+
+- [mmp/pbrt-v3](https://github.com/mmp/pbrt-v3)
+    - [spectrum data](https://github.com/mmp/pbrt-v3/blob/master/src/core/spectrum.cpp#L984) in src/core/spectrum.cpp
