@@ -164,43 +164,70 @@ namespace png {
 				for (auto& it_scene : it.value().items()) {
 					if (it_scene.key() == "00 object") {
 						for (auto& it_object : it_scene.value().items()) {
+							//material
+							int materialType = it_object.value()["03 material"]["type"];
+							Material* mat = nullptr;
+							if (materialType == 0) {
+								vec3 color;
+								color.x = it_object.value()["03 material"]["color"][0];
+								color.y = it_object.value()["03 material"]["color"][1];
+								color.z = it_object.value()["03 material"]["color"][2];
+								TextureSolid* textureColor = new TextureSolid(color);
+								vec3 emission;
+								emission.x = it_object.value()["03 material"]["emission"][0];
+								emission.y = it_object.value()["03 material"]["emission"][1];
+								emission.z = it_object.value()["03 material"]["emission"][2];
+								TextureSolid* textureEmission = new TextureSolid(emission);
+								mat = new DiffuseMaterial(textureColor, textureEmission, PDF_TYPE::CosImportSample);
+							}
+							else if (materialType == 1) {
+								vec3 color;
+								color.x = it_object.value()["03 material"]["color"][0];
+								color.y = it_object.value()["03 material"]["color"][1];
+								color.z = it_object.value()["03 material"]["color"][2];
+								TextureSolid* textureColor = new TextureSolid(color);
+								vec3 emission;
+								emission.x = it_object.value()["03 material"]["emission"][0];
+								emission.y = it_object.value()["03 material"]["emission"][1];
+								emission.z = it_object.value()["03 material"]["emission"][2];
+								TextureSolid* textureEmission = new TextureSolid(emission);
+								mat = new RefractionMaterial(TransparentMaterialType::BK7, textureColor, textureEmission);
+							}
+
 							SceneObject* tmp;
 							int objectType = it_object.value()["00 objectType"];
-							// sphere
 							if (objectType == 0) {
+								// sphere
 								vec3 posi;
 								posi.x = it_object.value()["01 position"][0];
 								posi.y = it_object.value()["01 position"][1];
 								posi.z = it_object.value()["01 position"][2];
 								float size = it_object.value()["02 size"];
-
-								//material
-								int materialType = it_object.value()["03 material"]["type"];
-								Material* mat = nullptr;
-								if (materialType == 0) {
-									vec3 color;
-									color.x = it_object.value()["03 material"]["color"][0];
-									color.y = it_object.value()["03 material"]["color"][1];
-									color.z = it_object.value()["03 material"]["color"][2];
-									vec3 emission;
-									emission.x = it_object.value()["03 material"]["emission"][0];
-									emission.y = it_object.value()["03 material"]["emission"][1];
-									emission.z = it_object.value()["03 material"]["emission"][2];
-									mat = new DiffuseMaterial(color, emission);
-								}
-								else if (materialType == 1) {
-									vec3 color;
-									color.x = it_object.value()["03 material"]["color"][0];
-									color.y = it_object.value()["03 material"]["color"][1];
-									color.z = it_object.value()["03 material"]["color"][2];
-									vec3 emission;
-									emission.x = it_object.value()["03 material"]["emission"][0];
-									emission.y = it_object.value()["03 material"]["emission"][1];
-									emission.z = it_object.value()["03 material"]["emission"][2];
-									mat = new RefractionMaterial(color, emission);
-								}
-
 								tmp = new SphereObject(posi, size, mat);
+							}
+							else if (objectType == 1) {
+								// mesh
+								std::vector<vec3> posi;
+								vec3 tmp_posi;
+								int index = 0;
+								for (auto& it_posi : it_object.value()["01 position"].items()) {
+									if (index == 0) {
+										tmp_posi.x = it_posi.value();
+									}
+									else if (index == 1) {
+										tmp_posi.y = it_posi.value();
+									}
+									else if (index == 2) {
+										tmp_posi.z = it_posi.value();
+									}
+									index++;
+									if (index == 3) {
+										posi.push_back(tmp_posi);
+										index = 0;
+									}
+								}
+
+								tmp = new MeshObject(posi, mat);
 							}
 
 							data.object.push_back(tmp);

@@ -1,18 +1,21 @@
 #pragma once
 
+#include "Color.h"
+
 //
 // Reference from https://en.wikipedia.org/wiki/Sellmeier_equation
 // and https://refractiveindex.info/
 //
 
 namespace png {
-	enum TransparentMaterialType{ 
+	enum TransparentMaterialType {
 		Sapphire
-		,BK7
-		,HighVariance
+		, BK7
+		, HighVariance
+		, Vacume
 	};
 	double inline refractiveIndex(TransparentMaterialType materialType, double wavelength_nm) {
-		double B1, B2, B3, C1, C2, C3;
+		double B1 = 0.0, B2 = 0.0, B3 = 0.0, C1 = 0.0, C2 = 0.0, C3 = 0.0;
 		switch (materialType)
 		{
 		case Sapphire:
@@ -36,20 +39,21 @@ namespace png {
 			B2 = B3 = 0.0;
 			C1 = C2 = C3 = 1.0;
 			break;
+		case Vacume:
 		default:
+			B1 = B2 = B3 = C1 = C2 = C3 = 0.0;
 			break;
 		}
 
-		if (wavelength_nm >= 0) {
-			double x = 0.001 * wavelength_nm; // = wavelength (micro metres)
-			double n_sq = 1 
-				+ B1 * x * x / (x * x - C1) 
-				+ B2 * x * x / (x * x - C2) 
-				+ B3 * x * x / (x * x - C3);
-			return sqrt(n_sq);
+		if (wavelength_nm < 0) {
+			wavelength_nm = 0.5*(color::MAX_WAVELENGTH + color::MIN_WAVELENGTH);
 		}
-		else {
-			return 1;
-		}
+
+		double x = 0.001 * wavelength_nm; // = wavelength (micro metres)
+		double n_sq = 1
+			+ B1 * x * x / (x * x - C1)
+			+ B2 * x * x / (x * x - C2)
+			+ B3 * x * x / (x * x - C3);
+		return sqrt(n_sq);
 	}
 }

@@ -13,6 +13,7 @@ namespace png {
 		//std::shared_ptr<Material> mat_ptr;
 		bool front_face;
 		double spectrum;
+		int hitObjectIndex;
 
 		inline void set_face_normal(const Ray& r, const vec3& outward_normal) {
 			front_face = Dot(r.dir, outward_normal) < 0;

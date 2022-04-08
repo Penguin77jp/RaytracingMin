@@ -8,7 +8,7 @@ namespace png {
 	public:
 		double x, y, z;
 		vec3() :x(0), y(0), z(0) {}
-		vec3(double x, double y = 0.0f, double z = 0.0f) :x(x), y(y), z(z) {}
+		vec3(double x, double y, double z) :x(x), y(y), z(z) {}
 		vec3(const vec3& a) : x(a.x), y(a.y), z(a.z) {}
 
 		//operator
@@ -42,6 +42,12 @@ namespace png {
 			this->z -= b.z;
 			return *this;
 		}
+		bool operator ==(const vec3& a) {
+			return this->x == a.x && this->y == a.y && this->z == a.z;
+		}
+		bool operator !=(const vec3& a) {
+			return !(*this == a);
+		}
 		operator std::string() const {
 			return std::to_string(this->x) + std::string(" , ") + std::to_string(this->y) + std::string(" , ") + std::to_string(this->z);
 		}
@@ -53,9 +59,6 @@ namespace png {
 	inline vec3 operator *(const double t, const vec3 a) {
 		return a * t;
 	}
-	inline double pow2(double x) {
-		return x * x;
-	}
 
 	class Ray {
 	public:
@@ -63,6 +66,8 @@ namespace png {
 		Ray(vec3 o, vec3 d) :org(o), dir(d) {}
 		Ray() :org(vec3()), dir(vec3()) {}
 	};
+
+	const double EPS = 1e-6;
 }
 
 static inline double Dot(const png::vec3& a, const png::vec3& b) {
@@ -76,4 +81,9 @@ static inline double Magnitude(const png::vec3& a) {
 }
 static inline png::vec3 Normalize(const png::vec3& a) {
 	return  a / Magnitude(a);
+}
+
+template <class T>
+static inline T pow2(const T a) {
+	return a * a;
 }

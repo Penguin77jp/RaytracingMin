@@ -1,15 +1,16 @@
 {
-  "00 height": 480,
-  "00 width": 720,
-  "00 samples": 50,
+  "00 renderType": 0,
+  "00 height": 400,
+  "00 width": 400,
+  "00 samples": 10,
   "00 superSamples": 1,
-  "00 spectrumSamples": 200,
+  "00 spectrumSamples": 50,
   "01 camera": {
-    "fov": 1.2,
+    "fov": 1.0,
     "origin": [
       0.0,
       0.0,
-      -10.0
+      -16.0
     ],
     "target": [
       0,
@@ -18,7 +19,7 @@
     ],
     "upVec": [
       0.0,
-      1.0,
+      0.0,
       0.0
     ]
   },
@@ -29,175 +30,19 @@
         "00 objectType": 0,
         "01 position": [
           0,
-          109.6,
-          0
-        ],
-        "02 size": 100,
-        "03 material": {
-          "type": 0,
-          "color": [
-            0,
-            0,
-            0
-          ],
-          "emission": [
-            5,
-            5,
-            5
-          ]
-        }
-      },
-      {
-        "00 objectType": 0,
-        "01 position": [
-          10010,
           0,
           0
         ],
-        "02 size": 10000,
+        "02 size": 1,
         "03 material": {
           "type": 0,
           "color": [
-            0.9,
-            0.25,
-            0.25
+            0,0,0
           ],
           "emission": [
-            0.0,
-            0.0,
-            0.0
-          ]
-        }
-      },
-      {
-        "00 objectType": 0,
-        "01 position": [
-          -10010,
-          0,
-          0
-        ],
-        "02 size": 10000,
-        "03 material": {
-          "type": 0,
-          "color": [
-            0.25,
-            0.9,
-            0.25
-          ],
-          "emission": [
-            0.0,
-            0.0,
-            0.0
-          ]
-        }
-      },
-      {
-        "00 objectType": 0,
-        "01 position": [
-          0,
-          10010,
-          0
-        ],
-        "02 size": 10000,
-        "03 material": {
-          "type": 0,
-          "color": [
-            0.25,
-            0.25,
-            0.9
-          ],
-          "emission": [
-            0.0,
-            0.0,
-            0.0
-          ]
-        }
-      },
-      {
-        "00 objectType": 0,
-        "01 position": [
-          0,
-          -10010,
-          0
-        ],
-        "02 size": 10000,
-        "03 material": {
-          "type": 0,
-          "color": [
-            0.7,
-            0.7,
-            0.7
-          ],
-          "emission": [
-            0.0,
-            0.0,
-            0.0
-          ]
-        }
-      },
-      {
-        "00 objectType": 0,
-        "01 position": [
-          0,
-          0,
-          10010
-        ],
-        "02 size": 10000,
-        "03 material": {
-          "type": 0,
-          "color": [
-            0.9,
-            0.25,
-            0.9
-          ],
-          "emission": [
-            0.0,
-            0.0,
-            0.0
-          ]
-        }
-      },
-      {
-        "00 objectType": 0,
-        "01 position": [
-          0,
-          0,
-          -10010
-        ],
-        "02 size": 10000,
-        "03 material": {
-          "type": 0,
-          "color": [
-            0.25,
-            0.9,
-            0.9
-          ],
-          "emission": [
-            0.0,
-            0.0,
-            0.0
-          ]
-        }
-      },
-      {
-        "00 objectType": 0,
-        "01 position": [
-          0,
-          -3,
-          0
-        ],
-        "02 size": 3,
-        "03 material": {
-          "type": 1,
-          "color": [
-            1,
-            1,
-            1
-          ],
-          "emission": [
-            0.0,
-            0.0,
-            0.0
+            2,
+            2,
+            2
           ]
         }
       }

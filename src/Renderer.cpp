@@ -58,7 +58,7 @@ namespace png {
 				const double expLambda = 1.0;
 				double expVal = expLambda * exp(-expLambda * (depth - maxDepth));
 				if (rand.RandomGenerate() > expVal) {
-					return 0;
+					return vec3();
 				}
 				else {
 					weight = 1.0 / std::min(expVal, 1.0);
@@ -67,34 +67,37 @@ namespace png {
 		}
 
 		int hitObject = -1;
-		double dis = std::numeric_limits<double>::max();
-		{
-			for (int i = 0; i < data.object.size(); ++i) {
-				auto& obj = data.object[i];
-				auto tmp_dis = obj->HitDistance(ray);
-				//float tmp_dis = hit_sphere(obj.position, obj.size, ray);
-				if (tmp_dis < dis && tmp_dis > 0) {
-					dis = tmp_dis;
-					hitObject = i;
-				}
-			}
-		}
+		double distance = 0.0;
+		RayCasting(ray, data, hitObject, distance);
 
 		if (hitObject != -1) {
 			auto& obj = data.object[hitObject];
-			if (dis > 0) {
-				auto hitPoint = ray.org + dis * ray.dir;
-				if (rand.RandomGenerate() <= kd(obj->color(hitPoint))) {
-					HitRecord nextRec;
-					auto nextRay = obj->ScatteredRay(ray, nextRec, -1, rand);
-					auto nextPathTracing = Pathtracing(nextRay, data, rand, depth+1);
-					return weight*(obj->color(vec3()) / kd(obj->color(hitPoint)) * nextPathTracing + obj->emission(hitPoint));
+			HitRecord nextRec;
+			nextRec.hitObjectIndex = hitObject;
+			nextRec.t = distance - EPS;
+			nextRec.point = ray.org + nextRec.t * ray.dir;
+			auto hitPoint = nextRec.point;
+			if (rand.RandomGenerate() <= kd(obj->color(hitPoint))) {
+				double pdfWeight = 0.0;
+				auto nextRay = obj->ScatteredRay(ray, nextRec, data, pdfWeight, -1, rand);
+				if (pdfWeight > 0.0) {
+					auto nextPathTracing = Pathtracing(nextRay, data, rand, depth + 1) * pdfWeight;
+					return weight * (obj->color(vec3(hitPoint)) / kd(obj->color(hitPoint)) * nextPathTracing + obj->emission(hitPoint));
 				}
 				else {
-					return weight*obj->emission(hitPoint);
+					return weight * obj->emission(hitPoint);
 				}
 			}
+			else {
+				return weight * obj->emission(hitPoint);
+			}
 		}
+		// IBL
+		auto N = 10;
+		auto cos = std::acos(ray.dir.x) / png::PI;
+		auto sin = std::asin(ray.dir.y) / png::PI + 0.5;
+		//return vec3((int)(cos*N)%2, (int)(sin*N)%2, 0);
+
 		return vec3();
 	}
 
@@ -130,17 +133,20 @@ namespace png {
 			auto& obj = data.object[hitObject];
 			if (dis > 0) {
 				auto hitpoint = ray.org + dis * ray.dir;
-				//double  AlbedoSpectrumValue = color::spectrumValueFromRGB(obj->color(hitpoint), spectrum);
 				double  AlbedoSpectrumValue = SampledSpectrumFromRGB(obj->color(hitpoint), SpectrumType::Reflectance, spectrum);
 				if (rand.RandomGenerate() <= AlbedoSpectrumValue) {
 					HitRecord nextRec;
-					auto nextRay = obj->ScatteredRay(ray, nextRec, spectrum, rand);
-					auto nextPathTracing = SpectrumPathtracing(nextRay, spectrum, data, rand, depth + 1);
-					//return weight * (nextPathTracing + color::spectrumValueFromRGB(obj->emission(hitpoint), spectrum));
-					return weight * (nextPathTracing + SampledSpectrumFromRGB(obj->emission(hitpoint), SpectrumType::Illuminant, spectrum));
+					double pdfWeight = 0.0;
+					auto nextRay = obj->ScatteredRay(ray, nextRec, data, pdfWeight, spectrum, rand);
+					if (pdfWeight > 0.0) {
+						auto nextPathTracing = SpectrumPathtracing(nextRay, spectrum, data, rand, depth + 1);
+						return weight * (nextPathTracing + SampledSpectrumFromRGB(obj->emission(hitpoint), SpectrumType::Illuminant, spectrum));
+					}
+					else {
+						return weight * SampledSpectrumFromRGB(obj->emission(hitpoint), SpectrumType::Illuminant, spectrum);
+					}
 				}
 				else {
-					//return weight * color::spectrumValueFromRGB(obj->emission(hitpoint), spectrum);
 					return weight * SampledSpectrumFromRGB(obj->emission(hitpoint), SpectrumType::Illuminant, spectrum);
 				}
 			}
@@ -148,13 +154,17 @@ namespace png {
 		return 0;
 	}
 
-	vec3 RenderPathtracing(int x, int y, int sx, int sy, int samples, SettingData& data, Camera* cam, Random& rnd) {
+	vec3 RenderPathtracing(int x, int y, int sx, int sy, int samples, SettingData& data, Camera* cam, Random& rand) {
 		vec3 cal;
 		Ray rayIncomingSensor;
-		Ray ray;
-		cam->GenerateRay(x, y, sx, sy, -1, rayIncomingSensor, ray);
+		std::optional<Ray> ray;
 		for (int s = 0; s < samples; ++s) {
-			cal += Pathtracing(ray, data, rnd, 0) / samples;
+			cam->GenerateRay(x, y, sx, sy, -1, rayIncomingSensor, ray, rand);
+			// no hit in lens
+			if (!ray.has_value()) {
+				continue;
+			}
+			cal += Pathtracing(ray.value(), data, rand, 0) / samples;
 		}
 		return cal;
 	}
@@ -258,18 +268,21 @@ namespace png {
 	}
 	*/
 
-	vec3 RenderSpectrumPathtracing(int x, int y, int sx, int sy, int samples, int spectrumSamples, Camera* cam, SettingData& data, Random& rnd) {
+	vec3 RenderSpectrumPathtracing(int x, int y, int sx, int sy, int samples, int spectrumSamples, Camera* cam, SettingData& data, Random& rand) {
 		auto xyz_normalize = color::CIEXYZ::y_integral;
 
 		vec3 xyz;
 		for (int spec = 0; spec < spectrumSamples; ++spec) {
-			double spectrum = rnd.RandomGenerate() * (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) + color::MIN_WAVELENGTH;
+			double spectrum = rand.RandomGenerate() * (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) + color::MIN_WAVELENGTH;
 			Ray rayIncomingSensor;
-			Ray ray;
-			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray);
+			std::optional<Ray> ray;
+			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray, rand);
 			for (int s = 0; s < samples; ++s) {
+				// no hit in lens
+				if (!ray.has_value()) {
+					continue;
+				}
 				xyz += (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) * color::xbybzbFromWavelength(spectrum) / samples / spectrumSamples / xyz_normalize;
-				//xyz += (color::MAX_WAVELENGTH-color::MIN_WAVELENGTH) * SpectrumPathtracing(ray, spectrum, data, rnd)  * color::xbybzbFromWavelength(spectrum) / samples / spectrumSamples / xyz_normalize;
 			}
 		}
 
@@ -277,6 +290,7 @@ namespace png {
 		return RGB;
 	}
 
+	/*
 	vec3 RenderSpectrumPathtracing_Normal(int x, int y, int sx, int sy, int samples, int spectrumSamples, Camera* cam, SettingData& data, Random& rnd) {
 		vec3 xyz;
 		for (int spec = 0; spec < spectrumSamples; ++spec) {
@@ -297,6 +311,7 @@ namespace png {
 		auto RGB = color::rgbFromXyz(xyz);
 		return RGB;
 	}
+	*/
 
 	double SpectrumPoint_Importance(Random& rand) {
 		while (true) {
@@ -311,16 +326,20 @@ namespace png {
 		}
 	}
 
-	vec3 RenderSpectrumPathtracing_ImportanceSampling(int x, int y, int sx, int sy, int samples, int spectrumSamples, Camera* cam, SettingData& data, Random& rnd) {
+	vec3 RenderSpectrumPathtracing_ImportanceSampling(int x, int y, int sx, int sy, int samples, int spectrumSamples, Camera* cam, SettingData& data, Random& rand) {
 		vec3 xyz;
 		for (int spec = 0; spec < spectrumSamples; ++spec) {
-			double spectrum = SpectrumPoint_Importance(rnd);
+			double spectrum = SpectrumPoint_Importance(rand);
 			Ray rayIncomingSensor;
-			Ray ray;
-			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray);
+			std::optional<Ray> ray;
+			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray, rand);
 			auto pathTracingRadiance = 0.0;
 			for (int s = 0; s < samples; ++s) {
-				pathTracingRadiance += SpectrumPathtracing(ray, spectrum, data, rnd, 0) / samples;
+				// no hit in lens
+				if (!ray.has_value()) {
+					continue;
+				}
+				pathTracingRadiance += SpectrumPathtracing(ray.value(), spectrum, data, rand, 0) / samples;
 			}
 			auto xbybzb = color::xbybzbFromWavelength(spectrum);
 			auto pdf = (xbybzb.x + xbybzb.y + xbybzb.z) / (color::CIEXYZ::x_integral + color::CIEXYZ::y_integral + color::CIEXYZ::z_integral);
@@ -343,15 +362,18 @@ namespace png {
 		double thickness = 1;
 		double radius = 2;
 		double focuce = 10;
-		//double refractiveIndex = (radius + 0.5 * thickness) / 2 / focuce + 1;
-		Camera* camera = new NoLensCamera(data);
-		//Camera* camera = new PrototypeCamera(1, 2, TransparentMaterialType::HighVariance, data);
+		Camera* camera = new LensSystem("camera/convex.json", data);
+		//Camera* camera = new NoLensCamera(data);
+		//Camera* camera = new LensCamera(data, PrototypeLensType::Convex);
 		//random
 		png::Random rnd;
 
 		std::clock_t start = std::clock();
 
 #ifdef _DEBUG
+		//this->data.width = 4;
+		//this->data.height = 4;
+		//this->data.samples = 10000;
 #else
 #pragma omp parallel for schedule(dynamic)
 #endif
@@ -368,14 +390,12 @@ namespace png {
 						Ray rayIncomingSendor;
 						vec3 cal;
 						if (renderingMode == 0) {
-							cal = vec3(0, 1, 0);
 							cal = RenderPathtracing(x, y, sx, sy, data.samples, data, camera, rnd);
 						}
 						else if (renderingMode == 1) {
 							cal = RenderSpectrumPathtracing_ImportanceSampling(x, y, sx, sy, data.samples, data.spectrumSamples, camera, data, rnd);
 						}
-						//auto dot = Dot(rayIncomingSendor.dir, Normalize(vec3(0, 0, 1)));
-						cal = clampColor(cal, 0, 1);
+						cal = clampColor(cal, 0.0, 1.0);
 						accumulatedColor += cal / data.superSamples / data.superSamples;
 					}
 				}
@@ -389,7 +409,8 @@ namespace png {
 		// save image
 		auto resultImage = std::vector<unsigned char>(data.width * data.height * 3);
 		for (int i = 0; i < resultImage.size(); ++i) {
-			resultImage[i] = (unsigned char)(255.0 * std::min(image[i], 1.0));
+			const auto gamma = 1.0 / 2.2;
+			resultImage[i] = (unsigned char)(255.0 * std::min(std::pow(image[i], gamma), 1.0));
 		}
 
 		stbi_write_jpg((fileName + ".jpg").c_str(), data.width, data.height, 3, resultImage.data(), 100);
