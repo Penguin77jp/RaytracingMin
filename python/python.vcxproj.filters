@@ -21,9 +21,6 @@
     <ClCompile Include="src\Camera_py.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Camera.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Color.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -43,6 +40,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Texture.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Camera.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

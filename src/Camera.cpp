@@ -64,8 +64,8 @@ namespace png {
 			auto sphereDistance = hitSphere(sphperePosition, sphereRadius, rayCal);
 			if (!sphereDistance.has_value()) {
 				if (DEBUG() && !onlyPathedRay) {
-					file << std::string(rayCal.org) << std::endl;
-					file << std::string(rayCal.org + rayCal.dir) << std::endl;
+					file << rayCal.org << std::endl;
+					file << (rayCal.org + rayCal.dir) << std::endl;
 				}
 				return std::nullopt;
 			}
@@ -77,8 +77,8 @@ namespace png {
 					auto r_pow2 = point.x * point.x + point.y * point.y;
 					if (r_pow2 > apertureRadius * apertureRadius) {
 						if (DEBUG() && !onlyPathedRay) {
-							file << std::string(rayCal.org) << std::endl;
-							file << std::string(point) << std::endl;
+							file << rayCal.org << std::endl;
+							file << point << std::endl;
 						}
 						return std::nullopt;
 					}
@@ -90,12 +90,12 @@ namespace png {
 			auto normalVec = Normalize(sphereHitpoint - sphperePosition);
 			normalVec = Dot(rayCal.dir, normalVec) > 0 ? normalVec : -normalVec;
 			if (DEBUG())
-				file << std::string(rayCal.org) << std::endl;
+				file << rayCal.org << std::endl;
 			rayCal.org = sphereHitpoint;
 			auto outDir_root = std::sqrt(1.0 - pow2(eta_over_eta) * (1.0 - pow2(Dot(normalVec, rayCal.dir))));
 			rayCal.dir = outDir_root * normalVec + eta_over_eta * (rayCal.dir - Dot(normalVec, rayCal.dir) * normalVec);
 			if (DEBUG())
-				file << std::string(rayCal.org) << std::endl;
+				file << rayCal.org << std::endl;
 			/*
 			auto sphereHitpoint = rayCal.org + sphereDistance.value() * rayCal.dir;
 			vec3 outcomingVec;
@@ -150,8 +150,8 @@ namespace png {
 			auto sphereDistance = hitSphere(sphperePosition, sphereRadius, rayCal);
 			if (!sphereDistance.has_value()) {
 				if (DEBUG() && !onlyPathedRay) {
-					file << std::string(rayCal.org) << std::endl;
-					file << std::string(rayCal.org + rayCal.dir) << std::endl;
+					file << rayCal.org << std::endl;
+					file << (rayCal.org + rayCal.dir) << std::endl;
 				}
 				return std::nullopt;
 			}
@@ -163,8 +163,8 @@ namespace png {
 					auto r_pow2 = point.x * point.x + point.y * point.y;
 					if (r_pow2 > apertureRadius * apertureRadius) {
 						if (DEBUG() && !onlyPathedRay) {
-							file << std::string(rayCal.org) << std::endl;
-							file << std::string(point) << std::endl;
+							file << rayCal.org << std::endl;
+							file << point << std::endl;
 						}
 						return std::nullopt;
 					}
@@ -176,14 +176,14 @@ namespace png {
 			auto normalVec = Normalize(sphereHitpoint - sphperePosition);
 			normalVec = Dot(rayCal.dir, normalVec) > 0 ? normalVec : -normalVec;
 			if (DEBUG())
-				file << std::string(rayCal.org) << std::endl;
+				file << rayCal.org << std::endl;
 			rayCal.org = sphereHitpoint;
 			auto outDir_root = std::sqrt(1.0 - pow2(eta_over_eta) * (1.0 - pow2(Dot(normalVec, rayCal.dir))));
 			rayCal.dir = outDir_root * normalVec + eta_over_eta * (rayCal.dir - Dot(normalVec, rayCal.dir) * normalVec);
 			if (DEBUG()) {
-				file << std::string(rayCal.org) << std::endl;
-				file << std::string(rayCal.org) << std::endl;
-				file << std::string(rayCal.org + rayCal.dir) << std::endl;
+				file << rayCal.org << std::endl;
+				file << rayCal.org << std::endl;
+				file << (rayCal.org + rayCal.dir) << std::endl;
 			}
 
 
@@ -233,8 +233,8 @@ namespace png {
 			auto r_pow2 = point.x * point.x + point.y * point.y;
 			if (r_pow2 > apertureRadius * apertureRadius) {
 				if (DEBUG() && !onlyPathedRay) {
-					file << std::string(rayCal.org) << std::endl;
-					file << std::string(point) << std::endl;
+					file << rayCal.org << std::endl;
+					file << point << std::endl;
 				}
 				return std::nullopt;
 			}

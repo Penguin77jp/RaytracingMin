@@ -174,7 +174,7 @@ int main() {
 */
 
 int main(int argc, char* argv[]) {
-	return png::main2D();
+	//return png::main2D();
 	std::string jsonFileTest = "settingData.json";
 	auto data = png::LoadData(jsonFileTest);
 	data.data.width = 5;

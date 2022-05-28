@@ -51,6 +51,10 @@ namespace png {
 		operator std::string() const {
 			return std::to_string(this->x) + std::string(" , ") + std::to_string(this->y) + std::string(" , ") + std::to_string(this->z);
 		}
+		operator const char* () const {
+			return "";
+			//return std::string(*this).c_str();
+		}
 	};
 
 	inline vec3 operator *(const vec3 a, const double t) {
