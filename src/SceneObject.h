@@ -5,6 +5,7 @@
 #include "HitRecord.h"
 #include "Texture.h"
 #include "Transparent.h"
+#include "WaveSolver.h"
 
 namespace png {
     struct HitRecord;
@@ -39,6 +40,7 @@ namespace png {
 		bool Hitable(const Ray& ray) const;
 		virtual double HitDistance(const Ray& ray) const = 0;
 		virtual Ray ScatteredRay(const Ray& refRay, HitRecord& hitrecord, const double spectrum, Random& rand) const = 0;
+		virtual void AnimationUpdate(float time) = 0;
 
 		//color
 		virtual vec3 color(const vec3& point) const = 0;
@@ -51,6 +53,7 @@ namespace png {
 		SphereObject(vec3 posi, float size, Material* mat);
 		double HitDistance(const Ray& ray) const;
 		Ray ScatteredRay(const Ray& refRay, HitRecord& hitrecord, const double spectrum, Random& rand) const;
+		void AnimationUpdate(float time);
 
 		//color
 		vec3 color(const vec3& point) const;
@@ -113,5 +116,22 @@ namespace png {
 	private:
 		vec3 m_up, m_right;
 		vec3 m_offset;
+	};
+
+	class WavePlane : public SceneObject {
+	public :
+		WavePlane(const vec3 position, Material* mat);
+		double HitDistance(const Ray& ray) const;
+		Ray ScatteredRay(const Ray& refRay, HitRecord& hitrecord, const double spectrum, Random& rand) const;
+		void AnimationUpdate(float time);
+
+		//color
+		vec3 color(const vec3& point) const;
+		vec3 emission(const vec3& point) const;
+
+	private:
+		float m_size;
+		vec3 m_position;
+		WaveSolver m_wave;
 	};
 }

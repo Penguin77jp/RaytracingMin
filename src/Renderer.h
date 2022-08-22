@@ -12,7 +12,7 @@ namespace png {
 		Renderer(SettingData&);
 
 		void Render(std::string);
-	private:
+	public:
 		std::vector<double> image;
 		SettingData& data;
 	};

@@ -359,7 +359,7 @@ namespace png {
 			auto progress = (double)y / data.height;
 			auto eclipseMin = (double)(std::clock() - start) / CLOCKS_PER_SEC / 60;
 			auto leftMin = (int)(eclipseMin / progress - eclipseMin);
-			std::cout << y << " / " << data.height << " [left " << leftMin << "min]" << std::endl;
+			//std::cout << y << " / " << data.height << " [left " << leftMin << "min]" << std::endl;
 
 			for (int x = 0; x < data.width; ++x) {
 				vec3 accumulatedColor = vec3(0, 0, 0);
@@ -392,7 +392,7 @@ namespace png {
 			resultImage[i] = (unsigned char)(255.0 * std::min(image[i], 1.0));
 		}
 
-		stbi_write_jpg((fileName + ".jpg").c_str(), data.width, data.height, 3, resultImage.data(), 100);
+		//stbi_write_jpg((fileName + ".jpg").c_str(), data.width, data.height, 3, resultImage.data(), 100);
 		stbi_write_bmp((fileName + ".bmp").c_str(), data.width, data.height, 3, resultImage.data());
 
 	}

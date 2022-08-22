@@ -49,7 +49,7 @@ namespace png {
 			ir = refractiveIndex(m_transparentMaterialType, spectrum);
 		}
 		else {
-			ir = refractiveIndex(m_transparentMaterialType, 0.5*(color::MAX_WAVELENGTH - color::MIN_WAVELENGTH));
+			ir = refractiveIndex(m_transparentMaterialType, 0.5 * (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH));
 		}
 		double refraction_ratio = rec.front_face ? (1.0 / ir) : ir;
 
@@ -144,8 +144,9 @@ namespace png {
 
 		return material->ScatteredRay(refRay, hitrecord, spectrum, rand);
 	}
+	void SphereObject::AnimationUpdate(float time) {}
 	vec3 SphereObject::color(const vec3& point) const {
-		return material->color(0,0);
+		return material->color(0, 0);
 	}
 	vec3 SphereObject::emission(const vec3& point) const {
 		return material->emission(0, 0);
@@ -242,32 +243,32 @@ namespace png {
 	}
 
 	vec3 MeshObject::color(const vec3& point) const {
-		return material->color(0,0);
+		return material->color(0, 0);
 	}
 	vec3 MeshObject::emission(const vec3& point) const {
-		return material->emission(0,0);
+		return material->emission(0, 0);
 	}
 
 	BoxObject::BoxObject(const vec3& offset, const vec3 size, Material* mat)
 		: MeshObject(std::vector<vec3>({
-				//front
-				vec3(1,1,-1), vec3(-1,1,-1), vec3(-1,-1,-1),
-				vec3(1,1,-1), vec3(-1,-1,-1), vec3(1,-1,-1),
-				//top
-				vec3(1,1,1), vec3(-1,1,1), vec3(-1,1,-1),
-				vec3(1,1,1), vec3(-1,1,-1), vec3(1,1,-1),
-				//bottum
-				vec3(1,-1,-1), vec3(-1,-1,-1), vec3(-1,-1,1),
-				vec3(1,-1,-1), vec3(-1,-1,1), vec3(1,-1,1),
-				//right
-				vec3(1,1,1), vec3(1,1,-1), vec3(1,-1,-1),
-				vec3(1,1,1), vec3(1,-1,-1), vec3(1,-1,1),
-				//left
-				vec3(-1,1,-1), vec3(-1,1,1), vec3(-1,-1,1),
-				vec3(-1,1,-1), vec3(-1,-1,1), vec3(-1,-1,-1),
-				//back
-				vec3(-1,1,1), vec3(1,1,1), vec3(1,-1,1),
-				vec3(-1,1,1), vec3(1,-1,1), vec3(-1,-1,1),
+		//front
+		vec3(1,1,-1), vec3(-1,1,-1), vec3(-1,-1,-1),
+		vec3(1,1,-1), vec3(-1,-1,-1), vec3(1,-1,-1),
+		//top
+		vec3(1,1,1), vec3(-1,1,1), vec3(-1,1,-1),
+		vec3(1,1,1), vec3(-1,1,-1), vec3(1,1,-1),
+		//bottum
+		vec3(1,-1,-1), vec3(-1,-1,-1), vec3(-1,-1,1),
+		vec3(1,-1,-1), vec3(-1,-1,1), vec3(1,-1,1),
+		//right
+		vec3(1,1,1), vec3(1,1,-1), vec3(1,-1,-1),
+		vec3(1,1,1), vec3(1,-1,-1), vec3(1,-1,1),
+		//left
+		vec3(-1,1,-1), vec3(-1,1,1), vec3(-1,-1,1),
+		vec3(-1,1,-1), vec3(-1,-1,1), vec3(-1,-1,-1),
+		//back
+		vec3(-1,1,1), vec3(1,1,1), vec3(1,-1,1),
+		vec3(-1,1,1), vec3(1,-1,1), vec3(-1,-1,1),
 			}), mat) {
 
 		//size
@@ -292,20 +293,20 @@ namespace png {
 	*/
 
 	vec3 BoxObject::color(const vec3& point) const {
-		return material->color(0,0);
+		return material->color(0, 0);
 	}
 	vec3 BoxObject::emission(const vec3& point) const {
-		return material->emission(0,0);
+		return material->emission(0, 0);
 	}
 
 	PlaneObject::PlaneObject(const vec3& offset, const vec3& up, const vec3& right, Material* mat)
-	: MeshObject(std::vector<vec3>(), mat)
-	, m_up(up)
-	, m_right(right)
-	, m_offset(offset){
+		: MeshObject(std::vector<vec3>(), mat)
+		, m_up(up)
+		, m_right(right)
+		, m_offset(offset) {
 		mesh.push_back(up + right + offset);
 		mesh.push_back(up - right + offset);
-		mesh.push_back(- up - right + offset);
+		mesh.push_back(-up - right + offset);
 		//
 		mesh.push_back(up + right + offset);
 		mesh.push_back(-up - right + offset);
@@ -322,10 +323,59 @@ namespace png {
 	}
 	vec3 PlaneObject::emission(const vec3& point) const {
 		auto pointInTexture = point - (-m_up - m_right);
-		auto dotX = Dot(pointInTexture, 2.0*m_right) / Dot(2.0*m_right, 2.0*m_right);
+		auto dotX = Dot(pointInTexture, 2.0 * m_right) / Dot(2.0 * m_right, 2.0 * m_right);
 		auto dotY = Dot(pointInTexture, 2.0 * m_up) / Dot(2.0 * m_up, 2.0 * m_up);
 
 		return material->emission(dotX, dotY);
 	}
 
+
+	WavePlane::WavePlane(const vec3 position, Material* mat)
+		: m_position(position)
+		, m_size(0.75)
+		, m_wave(WaveSolver())
+		, SceneObject(mat) {
+	}
+
+	double WavePlane::HitDistance(const Ray& ray) const {
+		vec3 normal = vec3(0, 1, 0);
+		if (Dot(ray.dir, normal) >= 0) {
+			return -1;
+		}
+		double _t = (m_position.y - ray.org.y) / ray.dir.y;
+		if (_t <= 0) {
+			return -1;
+		}
+		auto _p = ray.org + _t * ray.dir;
+		if (_p.x > m_size || _p.x < -m_size || _p.z > m_size || _p.z < -m_size) {
+			return -1;
+		}
+		return _t;
+	}
+
+	Ray WavePlane::ScatteredRay(const Ray& refRay, HitRecord& hitrecord, const double spectrum, Random& rand) const{
+		auto _t = HitDistance(refRay);
+		auto hitpoint = refRay.org + _t * refRay.dir;
+		auto indexP = vec3((hitpoint.x + m_size) / (m_size * 2), (hitpoint.z + m_size) / (m_size * 2), 0);
+		int indexX = std::max(std::min((int)(indexP.x * m_wave.widthN()), m_wave.widthN()-1), 1);
+		int indexY = std::max(std::min((int)(indexP.y * m_wave.heightN()), m_wave.heightN()-1), 1);;
+		vec3 normal = m_wave.normal(indexX, indexY);
+
+		hitrecord.front_face = Dot(refRay.dir, normal) < 0;
+		hitrecord.normal = normal;
+		hitrecord.point = hitpoint;
+		hitrecord.t = _t;
+		return Ray(hitpoint, refRay.dir - normal * 2.0 * Dot(normal, refRay.dir));
+	}
+
+	vec3 WavePlane::color(const vec3& point) const {
+		return vec3(1, 1, 1);
+	}
+	vec3 WavePlane::emission(const vec3& point) const {
+		return vec3(0, 0, 0);
+	}
+
+	void WavePlane::AnimationUpdate(float time) {
+		m_wave.step(m_wave.time2step(time));
+	}
 }

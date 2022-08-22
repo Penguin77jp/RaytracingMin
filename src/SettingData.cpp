@@ -20,8 +20,10 @@ namespace png {
 
 		//debug
 		//data.object.push_back(new BoxObject(vec3(), vec3(1,1,1), new RefractionMaterial(TransparentMaterialType::BK7, new TextureSolid(vec3(1, 1, 1)), new TextureSolid(vec3()))));
-		data.object.push_back(new SphereObject(vec3(), 1.0, new RefractionMaterial(TransparentMaterialType::BK7, new TextureSolid(vec3(1, 1, 1)), new TextureSolid(vec3()))));
-		data.object.push_back(new PlaneObject(vec3(0,0,5), vec3(0,-1,0), vec3(1,0,0), new DiffuseMaterial(new TextureSolid(vec3()), new TextureImage("penguin.jpg", 1.0))));
+		data.object.push_back(new WavePlane(vec3(0, 0, 0), nullptr));
+		data.object.push_back(new SphereObject(vec3(0, 0.4, 1.5), 0.2, new DiffuseMaterial(new TextureSolid(vec3(0)), new TextureSolid(vec3(1, 1, 1)))));
+		data.object.push_back(new SphereObject(vec3(0.5,0.4,1.5), 0.3, new DiffuseMaterial(new TextureSolid(vec3(0)), new TextureSolid(vec3(0,0,1)))));
+		data.object.push_back(new SphereObject(vec3(0, 0.7, 0.0), 0.3, new DiffuseMaterial(new TextureSolid(vec3(0)), new TextureSolid(vec3(1,0,0)))));
 
 		// glass
 		//data.object.push_back(new SphereObject(vec3(0,0,0), 3.0, new RefractionMaterial(TransparentMaterialType::BK7, new TextureSolid(vec3(1,1,1)), new TextureSolid(vec3()))));
@@ -212,6 +214,12 @@ namespace png {
 								}
 
 								tmp = new SphereObject(posi, size, mat);
+							}
+
+							// wave plane
+							else if (objectType == 1) {
+
+								tmp = new WavePlane(vec3(0,0,0), nullptr);
 							}
 
 							data.object.push_back(tmp);

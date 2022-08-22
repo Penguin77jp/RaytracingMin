@@ -11,8 +11,34 @@
 #include <chrono>
 #include "Color.h"
 #include "Spectrum.h"
+#include "WaveSolver.h"
+#include <cmath>
+#include "stb_image_write.h"
+#include <format>
 
 int main(int argc, char* argv[]) {
+	/*
+	WaveSolver wave;
+	auto resultImage = std::vector<unsigned char>(wave.widthN() * wave.heightN() * 3);
+	for (int f = 0; f < 10; ++f) {
+		wave.step(wave.time2step(2.0));
+		for (int y = 1; y < wave.heightN()-1; ++y) {
+			for (int x = 1; x < wave.widthN()-1; ++x) {
+				auto imageIndex = y * wave.widthN() * 3 + x * 3;
+				auto imageVal = wave.normal(x, y) * 0.5 + png::vec3(0.5, 0.5, 0.5);
+				auto imageValCharR = (unsigned char)(255.0 * std::min(std::max(imageVal.x, 0.0), 1.0));
+				auto imageValCharG = (unsigned char)(255.0 * std::min(std::max(imageVal.y, 0.0), 1.0));
+				auto imageValCharB = (unsigned char)(255.0 * std::min(std::max(imageVal.z, 0.0), 1.0));
+				resultImage[imageIndex] = imageValCharR;
+				resultImage[imageIndex + 1] = imageValCharG;
+				resultImage[imageIndex + 2] = imageValCharB;
+			}
+			//stbi_write_jpg(std::format("wave{}.jpg", f).c_str(), wave.widthN(), wave.heightN(), 3, resultImage.data(), 100);
+			stbi_write_bmp(std::format("wave{}.bmp", f).c_str(), wave.widthN(), wave.heightN(), 3, resultImage.data());
+		}
+	}
+	*/
+
 #ifdef _DEBUG
 	std::cout << "==============DEBUG MODE==============" << std::endl;
 #endif
@@ -53,7 +79,15 @@ int main(int argc, char* argv[]) {
 	std::cout << jsonFile << " loaded" << std::endl;
 	png::LoadData loadData(jsonFile);
 	png::Renderer renderer(loadData.data);
-	renderer.Render("result");
+	for (int f = 0; f < 50; ++f) {
+		auto& obj = renderer.data.object;
+		for (int i = 0; i < obj.size(); ++i) {
+			obj[i]->AnimationUpdate(1);
+		}
+		std::cout << std::format("{} / {}", f, 50) << std::endl;
+		renderer.Render(std::format("wave{}", f));
+		renderer.image = std::vector<double>(renderer.image.size(), 0);
+	}
 
 	return 0;
 }
