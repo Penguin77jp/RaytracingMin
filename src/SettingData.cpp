@@ -18,6 +18,17 @@ namespace png {
 			data.fov = 1.0;
 		}
 
+		//debug
+		//data.object.push_back(new BoxObject(vec3(), vec3(1,1,1), new RefractionMaterial(TransparentMaterialType::BK7, new TextureSolid(vec3(1, 1, 1)), new TextureSolid(vec3()))));
+		data.object.push_back(new SphereObject(vec3(), 1.0, new RefractionMaterial(TransparentMaterialType::BK7, new TextureSolid(vec3(1, 1, 1)), new TextureSolid(vec3()))));
+		data.object.push_back(new PlaneObject(vec3(0,0,5), vec3(0,-1,0), vec3(1,0,0), new DiffuseMaterial(new TextureSolid(vec3()), new TextureImage("penguin.jpg", 1.0))));
+
+		// glass
+		//data.object.push_back(new SphereObject(vec3(0,0,0), 3.0, new RefractionMaterial(TransparentMaterialType::BK7, new TextureSolid(vec3(1,1,1)), new TextureSolid(vec3()))));
+
+		// emistor image
+		//data.object.push_back(new PlaneObject(vec3(0, 0, 9), vec3(0, 10, 0), vec3(10, 0, 0), new DiffuseMaterial(new TextureSolid(vec3()), new TextureImage("penguin.jpg", 2.0f))));
+
 		from_json(json, data);
 	}
 
@@ -186,7 +197,7 @@ namespace png {
 									emission.x = it_object.value()["03 material"]["emission"][0];
 									emission.y = it_object.value()["03 material"]["emission"][1];
 									emission.z = it_object.value()["03 material"]["emission"][2];
-									mat = new DiffuseMaterial(color, emission);
+									mat = new DiffuseMaterial(new TextureSolid(color), new TextureSolid(emission));
 								}
 								else if (materialType == 1) {
 									vec3 color;
@@ -197,7 +208,7 @@ namespace png {
 									emission.x = it_object.value()["03 material"]["emission"][0];
 									emission.y = it_object.value()["03 material"]["emission"][1];
 									emission.z = it_object.value()["03 material"]["emission"][2];
-									mat = new RefractionMaterial(color, emission);
+									mat = new RefractionMaterial(TransparentMaterialType::HighVariance, new TextureSolid(color), new TextureSolid(emission));
 								}
 
 								tmp = new SphereObject(posi, size, mat);

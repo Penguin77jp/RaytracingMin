@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <chrono>
 #include "Color.h"
+#include "Spectrum.h"
 
 int main(int argc, char* argv[]) {
 #ifdef _DEBUG

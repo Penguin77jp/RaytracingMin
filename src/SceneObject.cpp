@@ -44,9 +44,12 @@ namespace png {
 	}
 
 	Ray RefractionMaterial::ScatteredRay(const Ray refRay, HitRecord& rec, const double spectrum, Random& rand) const {
-		double ir = 1.3;
+		double ir;
 		if (spectrum != -1) {
 			ir = refractiveIndex(m_transparentMaterialType, spectrum);
+		}
+		else {
+			ir = refractiveIndex(m_transparentMaterialType, 0.5*(color::MAX_WAVELENGTH - color::MIN_WAVELENGTH));
 		}
 		double refraction_ratio = rec.front_face ? (1.0 / ir) : ir;
 
@@ -154,6 +157,20 @@ namespace png {
 	vec3 SphereObject::position() const { return m_position; }
 	float SphereObject::size() const { return m_size; }
 
+	SpotlightObject::SpotlightObject(vec3 posi, float size, vec3 front, double dotVal, Material* mat)
+		: m_front(Normalize(front))
+		, m_dotVal(dotVal)
+		, SphereObject(posi, size, mat)
+	{}
+
+	double SpotlightObject::HitDistance(const Ray& ray) const {
+		// dot value
+		if (Dot(-m_front, ray.dir) <= m_dotVal) {
+			return 0;
+		}
+
+		return SphereObject::HitDistance(ray);
+	}
 
 	MeshObject::MeshObject(std::string fileName, Material* mat)
 		: SceneObject(mat) {
@@ -182,7 +199,7 @@ namespace png {
 				auto cross12 = Cross(p2 - p1, point - p1);
 				auto cross20 = Cross(p0 - p2, point - p2);
 
-				if (Dot(cross01, cross12) > 0 && Dot(cross12, cross20) > 0) {
+				if (Dot(cross01, cross12) >= 0 && Dot(cross12, cross20) >= 0) {
 					t = tmp_t;
 					hitMeshIndex = meshIndex;
 				}
@@ -231,7 +248,7 @@ namespace png {
 		return material->emission(0,0);
 	}
 
-	BoxObject::BoxObject(const vec3& offset, Material* mat)
+	BoxObject::BoxObject(const vec3& offset, const vec3 size, Material* mat)
 		: MeshObject(std::vector<vec3>({
 				//front
 				vec3(1,1,-1), vec3(-1,1,-1), vec3(-1,-1,-1),
@@ -253,6 +270,10 @@ namespace png {
 				vec3(-1,1,1), vec3(1,-1,1), vec3(-1,-1,1),
 			}), mat) {
 
+		//size
+		for (int i = 0; i < mesh.size(); ++i) {
+			mesh[i] = mesh[i] * size;
+		}
 		//offset
 		for (int i = 0; i < mesh.size(); ++i) {
 			mesh[i] += offset;

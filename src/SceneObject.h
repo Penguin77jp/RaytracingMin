@@ -62,9 +62,20 @@ namespace png {
 		vec3 position() const;
 		float size() const;
 		
-	private:
+	protected:
 		vec3 m_position;
 		float m_size;
+	};
+
+	class SpotlightObject : public SphereObject {
+	public:
+		SpotlightObject(vec3 posi, float size, vec3 front, double dotVal, Material* mat);
+
+		double HitDistance(const Ray& ray) const override;
+
+	private:
+		vec3 m_front;
+		double m_dotVal;
 	};
 
 	class MeshObject : public SceneObject {
@@ -84,7 +95,7 @@ namespace png {
 
 	class BoxObject : public MeshObject {
 	public :
-		BoxObject(const vec3& offset, Material* mat);
+		BoxObject(const vec3& offset, const vec3 size, Material* mat);
 
 		//color
 		vec3 color(const vec3& point) const;
