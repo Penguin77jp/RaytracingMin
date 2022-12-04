@@ -157,7 +157,7 @@ namespace png {
 		m_fovx = fov();
 		m_fovy = m_fovx * data.height / data.width;
 	}
-	void NoLensCamera::GenerateRay(int x, int y, int superSampleX, int superSampleY, double spectrum, Ray& rayIncomingSensor, Ray& generatedRay) {
+	void NoLensCamera::GenerateRay(int x, int y, int superSampleX, int superSampleY, double spectrum, Ray& rayIncomingSensor, Ray& generatedRay, Random& random) {
 		rayIncomingSensor = Ray();
 		const auto rate = 1.0 / (1 + superSamples());
 		vec3 dir = Normalize(
@@ -166,6 +166,54 @@ namespace png {
 			m_camZ
 		);
 		generatedRay = Ray(m_data.cameraOrigin, dir);
+	}
+
+	ThinLensCamera::ThinLensCamera(SettingData& data)
+		: Camera(data)
+		, m_aperture(data.cameraAperture)
+		, m_forcusDist(1.0)
+	{
+		vec3 upVec = vec3(0, 1, 0);
+		m_direction = Normalize(target() - origin());
+		m_camX = -Normalize(Cross(m_direction, upVec));
+		m_camY = Cross(m_camX, m_direction);
+		m_camZ = m_direction;
+		//fov
+		m_fovx = fov();
+		m_fovy = m_fovx * data.height / data.width;
+	}
+
+	void ThinLensCamera::SetFocalPoint(const vec3 point) {
+		m_forcusDist = Magnitude(point - m_origin);
+	}
+	void ThinLensCamera::SetAperture(const double aperture) {
+		m_aperture = aperture;
+	}
+
+	vec3 random_in_unit_disk(Random& random) {
+		while (true) {
+			auto p = vec3(random.RandomGenerate() * 2.0 - 1, random.RandomGenerate() * 2.0 - 1, 0);
+			if (p.x * p.x + p.y * p.y >= 1) {
+				continue;
+			}
+			return p;
+		}
+	}
+
+	void ThinLensCamera::GenerateRay(int x, int y, int superSampleX, int superSampleY, double spectrum, Ray& rayIncomingSensor, Ray& generatedRay, Random& random) {
+		rayIncomingSensor = Ray();
+		const auto rate = 1.0 / (1 + superSamples());
+		auto random_disk = random_in_unit_disk(random) * m_aperture;
+		auto offset = m_camX * random_disk.x + m_camY * random_disk.y;
+		vec3 org = m_data.cameraOrigin + offset;
+		vec3 dir = Normalize(
+			m_camX * m_fovx * (2.0f * ((double)x + rate * superSampleX) / m_data.width - 1.0f) +
+			m_camY * m_fovy * (2.0f * ((double)y + rate * superSampleY) / m_data.height - 1.0f) +
+			m_camZ
+		);
+		auto targetPoint = m_data.cameraOrigin + m_forcusDist * dir;
+		dir = Normalize( targetPoint - org );
+		generatedRay = Ray(org, dir);
 	}
 
 	PrototypeCamera::PrototypeCamera(double thickness, double radius, TransparentMaterialType lensMaterialType, SettingData& data)
@@ -185,7 +233,7 @@ namespace png {
 		m_fovy = m_fovx * data.height / data.width;
 	}
 
-	void PrototypeCamera::GenerateRay(int x, int y, int superSampleX, int superSampleY, double spectrum, Ray& rayIncomingSensor, Ray& generatedRay) {
+	void PrototypeCamera::GenerateRay(int x, int y, int superSampleX, int superSampleY, double spectrum, Ray& rayIncomingSensor, Ray& generatedRay, Random& random) {
 		const auto rate = 1.0 / (1 + superSamples());
 		Ray lensRay;
 		lensRay.org = vec3((2.0 * ((double)x + rate * superSampleX) / m_data.width - 1.0)

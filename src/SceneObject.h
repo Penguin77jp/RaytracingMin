@@ -128,10 +128,11 @@ namespace png {
 		//color
 		vec3 color(const vec3& point) const;
 		vec3 emission(const vec3& point) const;
+		
+		WaveSolver m_wave;
 
 	private:
 		float m_size;
 		vec3 m_position;
-		WaveSolver m_wave;
 	};
 }

@@ -14,7 +14,78 @@ namespace png {
 	Renderer::Renderer(SettingData& data)
 		:image(std::vector<double>(data.width* data.height * 3))
 		, data(data)
-	{}
+	{
+		waveSetting.push_back(std::pair(0.25, std::pair(10.0, 100.0)));
+		
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.5, std::pair(5, 50)));
+
+		waveSetting.push_back(std::pair(0.75, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.75, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.75, std::pair(5, 50)));
+		waveSetting.push_back(std::pair(0.75, std::pair(5, 50)));
+	}
+
+	void Renderer::AnimationUpdate(int frame, int allFrame, const clock_t benchmarkTime, Random& random) {
+		float lerp = (float)frame / allFrame;
+		data.AnimationUpdate(lerp);
+
+		// camera
+		{
+			float _p = 2.0 * std::numbers::pi * lerp;
+			float _r = 0.80;
+			data.cameraOrigin = vec3(_r * std::cos(_p), data.cameraOrigin.y, _r * std::sin(_p));
+
+			//aperture
+			double apertureSpeed;
+			double target = 0.0;
+			if (frame == 0)
+				data.cameraAperture = 0.03;
+			//data.cameraAperture = 0.1;
+			if (lerp < 1.0 / 2) {
+				apertureSpeed = 0.0015;
+				target = 0.0;
+			}
+			else {
+				apertureSpeed = 0.001;
+				target = 0.01;
+			}
+			auto& _ap = data.cameraAperture;
+			/*
+			if (std::abs(_ap - target) > 1e-3)
+				_ap += (target - _ap) / std::abs(_ap - target) * apertureSpeed;
+			*/
+			if (target > _ap) {
+				_ap += apertureSpeed;
+			}
+			else if (_ap > target) {
+				_ap -= apertureSpeed;
+			}
+		}
+
+		// wave
+		{
+			for (int i = 0; i < waveSetting.size();) {
+				auto& _wave = waveSetting[i];
+				if (_wave.first <= lerp) {
+					data.wave->m_wave.gaussSet(random.RandomGenerate(), random.RandomGenerate(), _wave.second.first, _wave.second.second);
+					//std::cout << "wave " << i << std::endl;
+					waveSetting.erase(waveSetting.begin() + i);
+				}
+				else {
+					i++;
+				}
+			}
+		}
+	}
 
 	double hit_sphere(const vec3 center, double radius, const Ray r) {
 		vec3 oc = r.org - center;
@@ -87,13 +158,16 @@ namespace png {
 				if (rand.RandomGenerate() <= kd(obj->color(hitPoint))) {
 					HitRecord nextRec;
 					auto nextRay = obj->ScatteredRay(ray, nextRec, -1, rand);
-					auto nextPathTracing = Pathtracing(nextRay, data, rand, depth+1);
-					return weight*(obj->color(vec3()) / kd(obj->color(hitPoint)) * nextPathTracing + obj->emission(hitPoint));
+					auto nextPathTracing = Pathtracing(nextRay, data, rand, depth + 1);
+					return weight * (obj->color(vec3()) / kd(obj->color(hitPoint)) * nextPathTracing + obj->emission(hitPoint));
 				}
 				else {
-					return weight*obj->emission(hitPoint);
+					return weight * obj->emission(hitPoint);
 				}
 			}
+		}
+		if (data.sceneLight != nullptr) {
+			return data.sceneLight->GetColor(ray.dir);
 		}
 		return vec3();
 	}
@@ -152,8 +226,8 @@ namespace png {
 		vec3 cal;
 		Ray rayIncomingSensor;
 		Ray ray;
-		cam->GenerateRay(x, y, sx, sy, -1, rayIncomingSensor, ray);
 		for (int s = 0; s < samples; ++s) {
+			cam->GenerateRay(x, y, sx, sy, -1, rayIncomingSensor, ray, rnd);
 			cal += Pathtracing(ray, data, rnd, 0) / samples;
 		}
 		return cal;
@@ -266,7 +340,7 @@ namespace png {
 			double spectrum = rnd.RandomGenerate() * (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) + color::MIN_WAVELENGTH;
 			Ray rayIncomingSensor;
 			Ray ray;
-			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray);
+			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray, rnd);
 			for (int s = 0; s < samples; ++s) {
 				xyz += (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) * color::xbybzbFromWavelength(spectrum) / samples / spectrumSamples / xyz_normalize;
 				//xyz += (color::MAX_WAVELENGTH-color::MIN_WAVELENGTH) * SpectrumPathtracing(ray, spectrum, data, rnd)  * color::xbybzbFromWavelength(spectrum) / samples / spectrumSamples / xyz_normalize;
@@ -280,10 +354,10 @@ namespace png {
 	vec3 RenderSpectrumPathtracing_Normal(int x, int y, int sx, int sy, int samples, int spectrumSamples, Camera* cam, SettingData& data, Random& rnd) {
 		vec3 xyz;
 		for (int spec = 0; spec < spectrumSamples; ++spec) {
-			double spectrum = (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH)*rnd.RandomGenerate() + color::MIN_WAVELENGTH;
+			double spectrum = (color::MAX_WAVELENGTH - color::MIN_WAVELENGTH) * rnd.RandomGenerate() + color::MIN_WAVELENGTH;
 			Ray rayIncomingSensor;
 			Ray ray;
-			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray);
+			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray, rnd);
 			auto pathTracingRadiance = 0.0;
 			for (int s = 0; s < samples; ++s) {
 				pathTracingRadiance += SpectrumPathtracing(ray, spectrum, data, rnd, 0) / samples;
@@ -317,7 +391,7 @@ namespace png {
 			double spectrum = SpectrumPoint_Importance(rnd);
 			Ray rayIncomingSensor;
 			Ray ray;
-			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray);
+			cam->GenerateRay(x, y, sx, sy, spectrum, rayIncomingSensor, ray, rnd);
 			auto pathTracingRadiance = 0.0;
 			for (int s = 0; s < samples; ++s) {
 				pathTracingRadiance += SpectrumPathtracing(ray, spectrum, data, rnd, 0) / samples;
@@ -344,7 +418,11 @@ namespace png {
 		double radius = 2;
 		double focuce = 10;
 		//double refractiveIndex = (radius + 0.5 * thickness) / 2 / focuce + 1;
-		Camera* camera = new NoLensCamera(data);
+		//Camera* camera = new NoLensCamera(data);
+		ThinLensCamera thinCam = ThinLensCamera(data);
+		thinCam.SetFocalPoint(vec3(0, 0, 0));
+		thinCam.SetAperture(data.cameraAperture);
+		Camera* camera = &thinCam;
 		//Camera* camera = new PrototypeCamera(1, 2, TransparentMaterialType::HighVariance, data);
 		//random
 		png::Random rnd;
@@ -357,8 +435,6 @@ namespace png {
 #endif
 		for (int y = 0; y < data.height; ++y) {
 			auto progress = (double)y / data.height;
-			auto eclipseMin = (double)(std::clock() - start) / CLOCKS_PER_SEC / 60;
-			auto leftMin = (int)(eclipseMin / progress - eclipseMin);
 			//std::cout << y << " / " << data.height << " [left " << leftMin << "min]" << std::endl;
 
 			for (int x = 0; x < data.width; ++x) {
@@ -368,7 +444,6 @@ namespace png {
 						Ray rayIncomingSendor;
 						vec3 cal;
 						if (renderingMode == 0) {
-							cal = vec3(0, 1, 0);
 							cal = RenderPathtracing(x, y, sx, sy, data.samples, data, camera, rnd);
 						}
 						else if (renderingMode == 1) {
@@ -384,7 +459,7 @@ namespace png {
 				image[x * 3 + y * data.width * 3 + 2] += accumulatedColor.z;
 			}
 		}
-		std::cout << ((double)(std::clock() - start) / CLOCKS_PER_SEC) << "sec" << std::endl;
+		//std::cout << ((double)(std::clock() - start) / CLOCKS_PER_SEC) << "sec" << std::endl;
 
 		// save image
 		auto resultImage = std::vector<unsigned char>(data.width * data.height * 3);
@@ -392,8 +467,8 @@ namespace png {
 			resultImage[i] = (unsigned char)(255.0 * std::min(image[i], 1.0));
 		}
 
-		//stbi_write_jpg((fileName + ".jpg").c_str(), data.width, data.height, 3, resultImage.data(), 100);
-		stbi_write_bmp((fileName + ".bmp").c_str(), data.width, data.height, 3, resultImage.data());
+		stbi_write_jpg((fileName + ".jpg").c_str(), data.width, data.height, 3, resultImage.data(), 100);
+		//stbi_write_bmp((fileName + ".bmp").c_str(), data.width, data.height, 3, resultImage.data());
 
 	}
-}
+	}

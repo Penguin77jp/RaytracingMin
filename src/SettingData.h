@@ -3,6 +3,7 @@
 #include "Ray.h"
 #include "SceneObject.h"
 #include "Camera.h"
+#include "sceneLight.h"
 
 #include <string>
 #include <cmath>
@@ -13,7 +14,14 @@ namespace png {
 		int renderType, width, height, samples, superSamples, spectrumSamples;
 		vec3 cameraOrigin, cameraTarget;
 		double fov;
+		WavePlane* wave;
 		std::vector<SceneObject*> object;
+		SceneLight* sceneLight;
+
+		// external
+		double cameraAperture;
+
+		void AnimationUpdate(float time);
 	};
 
 	struct LoadData {

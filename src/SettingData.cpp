@@ -2,6 +2,12 @@
 #include <fstream>
 
 namespace png {
+	void SettingData::AnimationUpdate(float time) {
+		for (int i = 0; i < object.size(); ++i) {
+			object[i]->AnimationUpdate(time);
+		}
+	}
+
 	LoadData::LoadData(std::string jsonName) {
 		std::ifstream jsonStream(jsonName);
 		nlohmann::json json;
@@ -20,10 +26,9 @@ namespace png {
 
 		//debug
 		//data.object.push_back(new BoxObject(vec3(), vec3(1,1,1), new RefractionMaterial(TransparentMaterialType::BK7, new TextureSolid(vec3(1, 1, 1)), new TextureSolid(vec3()))));
-		data.object.push_back(new WavePlane(vec3(0, 0, 0), nullptr));
-		data.object.push_back(new SphereObject(vec3(0, 0.4, 1.5), 0.2, new DiffuseMaterial(new TextureSolid(vec3(0)), new TextureSolid(vec3(1, 1, 1)))));
-		data.object.push_back(new SphereObject(vec3(0.5,0.4,1.5), 0.3, new DiffuseMaterial(new TextureSolid(vec3(0)), new TextureSolid(vec3(0,0,1)))));
-		data.object.push_back(new SphereObject(vec3(0, 0.7, 0.0), 0.3, new DiffuseMaterial(new TextureSolid(vec3(0)), new TextureSolid(vec3(1,0,0)))));
+		//data.object.push_back(new SphereObject(vec3(0, 0.4, 1.5), 0.2, new DiffuseMaterial(new TextureSolid(vec3(0)), new TextureSolid(vec3(1, 1, 1)))));
+		//data.object.push_back(new SphereObject(vec3(0.5,0.4,1.5), 0.3, new DiffuseMaterial(new TextureSolid(vec3(0)), new TextureSolid(vec3(0,0,1)))));
+		//data.object.push_back(new SphereObject(vec3(0, 0.7, 0.0), 0.3, new DiffuseMaterial(new TextureSolid(vec3(0)), new TextureSolid(vec3(1,0,0)))));
 
 		// glass
 		//data.object.push_back(new SphereObject(vec3(0,0,0), 3.0, new RefractionMaterial(TransparentMaterialType::BK7, new TextureSolid(vec3(1,1,1)), new TextureSolid(vec3()))));

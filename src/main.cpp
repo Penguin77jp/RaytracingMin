@@ -16,7 +16,36 @@
 #include "stb_image_write.h"
 #include <format>
 
+clock_t benchmark() {
+	std::string jsonFile = "settingData.json";
+	if (!std::filesystem::exists(jsonFile)) {
+		//std::cout << "export sample json file." << std::endl;
+		png::LoadData::SaveSampleJson(jsonFile);
+	}
+	//std::cout << jsonFile << " loaded" << std::endl;
+	png::LoadData loadData(jsonFile);
+
+	png::WavePlane wave(png::vec3(), nullptr);
+	loadData.data.object.push_back(&wave);
+	loadData.data.wave = &wave;
+
+	loadData.data.sceneLight = new png::SceneLight("background.jpg", 1.0);
+	png::Renderer renderer(loadData.data);
+	int frame = 150;
+	png::Random random;
+
+
+	std::clock_t start = std::clock();
+	renderer.AnimationUpdate(0, frame, 0, random);
+	//std::cout << std::format("{} / {}", f, frame) << std::endl;
+	renderer.Render(std::format("{:03}", 0));
+	return std::clock() - start;
+}
+
 int main(int argc, char* argv[]) {
+	const auto benchmark_time = benchmark();
+	//std::cout << (double)(benchmark_time / CLOCKS_PER_SEC) << "sec" << std::endl;
+
 	/*
 	WaveSolver wave;
 	auto resultImage = std::vector<unsigned char>(wave.widthN() * wave.heightN() * 3);
@@ -78,16 +107,26 @@ int main(int argc, char* argv[]) {
 	}
 	std::cout << jsonFile << " loaded" << std::endl;
 	png::LoadData loadData(jsonFile);
+
+	png::WavePlane wave(png::vec3(), nullptr);
+	loadData.data.object.push_back(&wave);
+	loadData.data.wave = &wave;
+
+	loadData.data.sceneLight = new png::SceneLight("resource/R0010057_20210515162730.JPG", 1.0);
 	png::Renderer renderer(loadData.data);
-	for (int f = 0; f < 50; ++f) {
-		auto& obj = renderer.data.object;
-		for (int i = 0; i < obj.size(); ++i) {
-			obj[i]->AnimationUpdate(1);
-		}
-		std::cout << std::format("{} / {}", f, 50) << std::endl;
-		renderer.Render(std::format("wave{}", f));
+	int frame = 150;
+	png::Random random;
+	std::clock_t start = std::clock();
+	int computeTime = 0;
+	for (int f = 0; f <= frame; ++f) {
+		renderer.AnimationUpdate(f, frame, benchmark_time, random);
+		std::cout << std::format("{} / {}", f, frame) << std::endl;
+		renderer.Render(std::format("{:03}", f));
+		computeTime += renderer.data.samples;
 		renderer.image = std::vector<double>(renderer.image.size(), 0);
 	}
+	//std::cout << std::format("compute time : {}", computeTime) << std::endl;
+	std::cout << ((double)(std::clock() - start) / CLOCKS_PER_SEC) << "sec" << std::endl;
 
 	return 0;
 }

@@ -357,25 +357,34 @@ namespace png {
 		auto _t = HitDistance(refRay);
 		auto hitpoint = refRay.org + _t * refRay.dir;
 		auto indexP = vec3((hitpoint.x + m_size) / (m_size * 2), (hitpoint.z + m_size) / (m_size * 2), 0);
-		int indexX = std::max(std::min((int)(indexP.x * m_wave.widthN()), m_wave.widthN()-1), 1);
-		int indexY = std::max(std::min((int)(indexP.y * m_wave.heightN()), m_wave.heightN()-1), 1);;
+		int indexX = std::max(std::min((int)(indexP.x * m_wave.widthN()), m_wave.widthN()-2), 2);
+		int indexY = std::max(std::min((int)(indexP.y * m_wave.heightN()), m_wave.heightN()-2), 2);;
 		vec3 normal = m_wave.normal(indexX, indexY);
 
 		hitrecord.front_face = Dot(refRay.dir, normal) < 0;
 		hitrecord.normal = normal;
 		hitrecord.point = hitpoint;
 		hitrecord.t = _t;
-		return Ray(hitpoint, refRay.dir - normal * 2.0 * Dot(normal, refRay.dir));
+
+		auto nextDir = refRay.dir - normal * 2.0 * Dot(normal, refRay.dir);
+		return Ray(hitpoint, nextDir);
 	}
 
 	vec3 WavePlane::color(const vec3& point) const {
+		//return vec3();
 		return vec3(1, 1, 1);
 	}
 	vec3 WavePlane::emission(const vec3& point) const {
-		return vec3(0, 0, 0);
+		auto indexP = vec3((point.x + m_size) / (m_size * 2), (point.z + m_size) / (m_size * 2), 0);
+		int indexX = (int)(indexP.x * m_wave.widthN());
+		int indexY = (int)(indexP.y * m_wave.heightN());
+		vec3 normal = m_wave.normal(indexX, indexY);
+
+		//return normal * 0.5 + vec3(0.5,0.5,0.5);
+		return vec3();
 	}
 
 	void WavePlane::AnimationUpdate(float time) {
-		m_wave.step(m_wave.time2step(time));
+		m_wave.step(50);
 	}
 }
