@@ -35,6 +35,7 @@
     <ClInclude Include="src\Random.h" />
     <ClInclude Include="src\Ray.h" />
     <ClInclude Include="src\Renderer.h" />
+    <ClInclude Include="src\sceneLight.h" />
     <ClInclude Include="src\SceneObject.h" />
     <ClInclude Include="src\SettingData.h" />
     <ClInclude Include="src\HitRecord.h" />
