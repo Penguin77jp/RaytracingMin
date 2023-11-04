@@ -1,5 +1,6 @@
 #include "SettingData.h"
 #include <fstream>
+#include <numbers>
 
 namespace png {
 	LoadData::LoadData(std::string jsonName) {
@@ -21,6 +22,7 @@ namespace png {
 		tmp.camera.upVec = vec3(0, 1, 0);
 		tmp.camera.fov = 60;
 
+		/*
 		tmp.object.push_back({
 			vec3(0,0,10)
 			, 1.0
@@ -93,6 +95,7 @@ namespace png {
 				}
 				});
 		}
+		*/
 
 		nlohmann::json tmpJson;
 		to_json(tmpJson, tmp);
@@ -115,10 +118,12 @@ namespace png {
 		};
 		for (int i = 0; i < data.object.size(); ++i) {
 			auto& obj = data.object[i];
+			/*
 			json["02 scene"]["00 object"][i]["00 position"] = { obj.position.x,obj.position.y,obj.position.z };
 			json["02 scene"]["00 object"][i]["01 size"] = obj.size;
 			json["02 scene"]["00 object"][i]["02 material"]["color"] = { obj.material.color.x ,obj.material.color.y,obj.material.color.z };
 			json["02 scene"]["00 object"][i]["02 material"]["emission"] = { obj.material.emission.x,obj.material.emission.y,obj.material.emission.z };
+			*/
 		}
 	}
 	void LoadData::from_json(const nlohmann::json& json, SettingData& data) {
@@ -153,17 +158,24 @@ namespace png {
 				for (auto& it_scene : it.value().items()) {
 					if (it_scene.key() == "00 object") {
 						for (auto& it_object : it_scene.value().items()) {
-							Object tmp;
-							tmp.position.x = it_object.value()["00 position"][0];
-							tmp.position.y = it_object.value()["00 position"][1];
-							tmp.position.z = it_object.value()["00 position"][2];
-							tmp.size = it_object.value()["01 size"];
-							tmp.material.color.x = it_object.value()["02 material"]["color"][0];
-							tmp.material.color.y = it_object.value()["02 material"]["color"][1];
-							tmp.material.color.z = it_object.value()["02 material"]["color"][2];
-							tmp.material.emission.x = it_object.value()["02 material"]["emission"][0];
-							tmp.material.emission.y = it_object.value()["02 material"]["emission"][1];
-							tmp.material.emission.z = it_object.value()["02 material"]["emission"][2];
+							Object* tmp = nullptr;
+							int objectType = it_object.value()["00 objectType"];
+							if (objectType == 1) {
+								vec3 posi;
+								posi.x = it_object.value()["00 position"][0];
+								posi.x = it_object.value()["00 position"][1];
+								posi.x = it_object.value()["00 position"][2];
+								double size;
+								size = it_object.value()["01 size"];
+								Material mat;
+								mat.color.x = it_object.value()["02 material"]["color"][0];
+								mat.color.y = it_object.value()["02 material"]["color"][1];
+								mat.color.z = it_object.value()["02 material"]["color"][2];
+								mat.emission.x = it_object.value()["02 material"]["emission"][0];
+								mat.emission.y = it_object.value()["02 material"]["emission"][1];
+								mat.emission.z = it_object.value()["02 material"]["emission"][2];
+								tmp = new png::SphereObject(posi, size, mat);
+							}
 							data.object.push_back(tmp);
 						}
 					}
@@ -171,6 +183,69 @@ namespace png {
 			}
 		}
 
+	}
+
+	Object::Object(const Material mat) {
+		this->m_material = mat;
+	}
+
+	SphereObject::SphereObject(const vec3 position, const float size, const Material mat)
+	: Object(mat)
+	, m_position(position)
+	, m_size(size)
+	{}
+	bool SphereObject::Intersect(const Ray& ray, double& out_dis, vec3 out_normal) const {
+		const vec3 p_o = m_position - ray.org;
+		const double b = Dot(p_o, ray.dir);
+		const double D4 = b * b - Dot(p_o, p_o) + m_size * m_size;
+
+		if (D4 < 0.0)
+			return false;
+
+		const double sqrt_D4 = sqrt(D4);
+		const double t1 = b - sqrt_D4, t2 = b + sqrt_D4;
+
+		const float minValue = 1e-5;
+		if (t1 < minValue && t2 < minValue)
+			return false;
+
+		if (t1 > 0.001) {
+			out_dis = t1;
+			auto hitPoint = ray.org + ray.dir * out_dis;
+			out_normal = Normalize(hitPoint - m_position);
+			return true;
+		}
+		else {
+			out_dis = t2;
+			auto hitPoint = ray.org + ray.dir * out_dis;
+			out_normal = Normalize(hitPoint - m_position);
+			return true;
+		}
+
+		return false;
+	}
+	vec3 SphereObject::ComputeSurfacePoint(const std::function<double()> randGene) const
+	{
+		const auto theta = 2.0 * std::numbers::pi;
+		const auto phi = 0.5 * std::numbers::pi;
+		const vec3 localPoint = { std::sin(theta) * std::sin(phi), std::sin(theta) * std::cos(phi), std::cos(theta) };
+		return localPoint * m_size + m_position;
+	}
+
+	PlaneObject::PlaneObject(const vec3 position, const vec3 up, const vec3 target, const double width, const Material mat)
+	:Object(mat)
+	,m_position(position)
+	,m_up(up)
+	{
+		m_normal = Normalize(target - m_position);
+		m_right = Normalize(Cross(m_normal, m_up)) * 0.5 * width;
+	}
+	bool PlaneObject::Intersect(const Ray& ray, double& out_dis, vec3 out_normal) const {
+		if (std::abs(Dot(m_normal, ray.dir)) < FLT_EPSILON)
+			return false;
+	}
+	vec3 PlaneObject::ComputeSurfacePoint(const std::function<double()> randGene) const {
+		return vec3();
 	}
 
 }

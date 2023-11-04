@@ -5,10 +5,11 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
 #include <iostream>
+#include <numbers>
 
 namespace png {
 	namespace {
-		constexpr double PI = 3.14159265358979323846;
+		constexpr double PI = std::numbers::pi;
 		template <typename T>
 		struct nullable {
 			T value;
@@ -35,30 +36,6 @@ namespace png {
 		}
 	}
 
-	nullable<double> intersect(const Ray& ray, const Object& obj) {
-		const vec3 p_o = obj.position - ray.org;
-		const double b = Dot(p_o, ray.dir);
-		const double D4 = b * b - Dot(p_o, p_o) + obj.size * obj.size;
-
-		if (D4 < 0.0)
-			return nullable<double>{0, false};
-
-		const double sqrt_D4 = sqrt(D4);
-		const double t1 = b - sqrt_D4, t2 = b + sqrt_D4;
-
-		const float minValue = 1e-5;
-		if (t1 < minValue && t2 < minValue)
-			return nullable<double>{0, false};
-
-		if (t1 > 0.001) {
-			return nullable<double>{t1, true};
-		}
-		else {
-			return nullable<double>{t2, true};
-		}
-
-	}
-
 	double random(std::random_device& gene) {
 		return (double)gene() / std::numeric_limits<unsigned int>::max();
 	}
@@ -77,35 +54,39 @@ namespace png {
 #endif
 	}
 
-	vec3 PathTracing(const Ray ray, SettingData& data, std::random_device& rand) {
+	vec3 PathTracing(const Ray ray, SettingData& data, const std::function<double()>& randomGene) {
 		int hitObject = -1;
+		vec3 normal;
 		double dis = std::numeric_limits<double>::max();
 		{
 			for (int i = 0; i < data.object.size(); ++i) {
-				auto& obj = data.object[i];
-				auto tmp_dis = intersect(ray, obj);
-				//float tmp_dis = hit_sphere(obj.position, obj.size, ray);
-				if (tmp_dis.has_value && tmp_dis.value < dis && tmp_dis.value > 0) {
-					dis = tmp_dis.value;
+				auto obj = data.object[i];
+				double tmp_dis;
+				vec3 tmp_normal;
+				auto tmp_intersect = obj->Intersect(ray, tmp_dis, tmp_normal);
+				if (tmp_intersect && tmp_dis < dis && tmp_dis > 0) {
+					dis = tmp_dis;
+					normal = tmp_normal;
 					hitObject = i;
 				}
 			}
 		}
 
 		if (hitObject != -1) {
-			auto& obj = data.object[hitObject];
+			auto* obj = data.object[hitObject];
 			if (dis > 0) {
-				if (random(rand) <= obj.material.kd()) {
+				if (randomGene() <= obj->m_material.kd()) {
 					const auto hitPoint = ray.dir * dis + ray.org;
-					const auto normal_hitedPoint = Normalize(hitPoint - obj.position);
+					const auto normal_hitedPoint = normal;
+					//const auto normal_hitedPoint = Normalize(hitPoint - obj.position);
 					const auto orienting_normal = Dot(normal_hitedPoint, ray.dir) < 0.0
 						? normal_hitedPoint : (normal_hitedPoint * -1.0);
 					auto nextRay = ray;
 					nextRay.org = hitPoint;
 					vec3 u, v, w;
 					w = orienting_normal;
-					const auto r1 = 2 * PI * random(rand);
-					const auto r2 = random(rand);
+					const auto r1 = 2 * PI * randomGene();
+					const auto r2 = randomGene();
 					const auto r2s = sqrt(r2);
 					/*
 					error
@@ -125,13 +106,94 @@ namespace png {
 						w * sqrt(1.0 - r2))
 					);
 					auto nextPathTracing = PathTracing(nextRay, data, rand);
-					return obj.material.colorKD() * nextPathTracing + obj.material.emission;
+					return obj->m_material.colorKD() * nextPathTracing + obj->m_material.emission;
 				}
 				else {
-					return obj.material.emission;
+					return obj->m_material.emission;
 				}
 			}
 		}
+		return vec3();
+	}
+
+	vec3 SurfaeSample(const Ray ray, SettingData& data, const int depth, const std::function<double()>& randomGene) {
+		if (depth <= 0) {
+			// path check
+			vec3 hitpoint;
+			vec3 normal;
+			int hitObjectIndex = -1;
+			double dis = std::numeric_limits<double>::max();
+			for (int i = 0; i < data.object.size(); ++i) {
+				auto& obj = data.object[i];
+				double tmp_dis;
+				vec3 tmp_normal;
+				auto tmp_intersect = obj->Intersect(ray, tmp_dis, tmp_normal);
+				if (tmp_intersect && tmp_dis < dis && tmp_dis > 0) {
+					dis = tmp_dis;
+					hitpoint = ray.org + ray.dir * dis;
+					hitObjectIndex = i;
+					normal = tmp_normal;
+				}
+			}
+			if (hitObjectIndex == -1) {
+				return vec3();
+			}
+			if (hitObjectIndex == 1) {
+				int hoge = 0;
+				hoge = 1;
+			}
+			const auto& hitObject = data.object[hitObjectIndex];
+			auto cal = SurfaeSample(Ray(hitpoint, normal), data, depth + 1, randomGene);
+			return cal * hitObject->m_material.color + hitObject->m_material.emission;
+		}
+		else {
+			const int objectIndex = randomGene() * data.object.size();
+			const auto object = data.object[objectIndex];
+			const auto surfacePoint = object->ComputeSurfacePoint(randomGene);
+
+			if (objectIndex == 0) {
+				int hoge = 0;
+				hoge = 1;
+			}
+
+			// path check
+			auto pathCheckRay = Ray(ray.org, Normalize(surfacePoint - ray.org));
+			vec3 hitpoint, normal;
+			int hitObject = -1;
+			{
+				double dis = std::numeric_limits<double>::max();
+				for (int i = 0; i < data.object.size(); ++i) {
+					auto obj = data.object[i];
+					double tmp_dis;
+					vec3 tmp_normal;
+					auto tmp_intersect = obj->Intersect(pathCheckRay, tmp_dis, tmp_normal);
+					if (tmp_intersect && tmp_dis < dis && tmp_dis> 0) {
+						dis = tmp_dis;
+						normal = tmp_normal;
+						hitpoint = pathCheckRay.org + pathCheckRay.dir * dis;
+						hitObject = i;
+					}
+				}
+				if (hitObject == -1 || hitObject != objectIndex) {
+					return vec3();
+				}
+			}
+			const auto dir = Normalize(surfacePoint - ray.org);
+			auto dot1 = Dot(ray.dir, dir);
+			auto dot2 = Dot(-dir, normal);
+			if (dot1 <= 0 || dot2 <= 0) {
+				return vec3();
+			}
+			auto surfacePointDisntace = Magnitude(ray.org - hitpoint);
+			auto surfacePointProbabiliy = std::max(surfacePointDisntace, 1.0);
+			auto surfacePointDiv = std::min(surfacePointDisntace, 1.0);
+			if (dot1 * dot2 * object->m_material.kd() * surfacePointProbabiliy < randomGene()) {
+				return object->m_material.emission;
+			}
+			auto colNext = SurfaeSample(Ray(hitpoint, normal), data, depth + 1, randomGene);
+			return colNext * object->m_material.colorKD() * surfacePointDiv + object->m_material.emission;
+		}
+
 		return vec3();
 	}
 
@@ -145,7 +207,10 @@ namespace png {
 		double fovx = data.camera.fov;
 		double fovy = fovx * data.height / data.width;
 		//random
-		std::random_device rnd;
+		std::random_device seed;
+		std::mt19937 rnd(seed());
+		std::uniform_real_distribution<double> dist(0.0, 1.0);
+		auto randomGene = [&rnd, &dist]() {return dist(rnd); };
 
 		for (int y = 0; y < data.height; ++y) {
 			std::cout << y << " / " << data.height << std::endl;
@@ -155,7 +220,7 @@ namespace png {
 #endif
 
 			for (int x = 0; x < data.width; ++x) {
-				vec3 accumulatedColor = vec3(0,0,0);
+				vec3 accumulatedColor = vec3(0, 0, 0);
 				for (int sx = 1; sx <= data.superSamples; ++sx) {
 					for (int sy = 1; sy <= data.superSamples; ++sy) {
 						for (int s = 0; s < data.samples; ++s) {
@@ -165,7 +230,14 @@ namespace png {
 								l_camY * fovy * (2.0f * ((double)y + rate * sy) / data.height - 1.0f) +
 								l_camZ
 							);
-							auto cal = PathTracing(Ray(data.camera.origin, dir), data, rnd) / data.superSamples / data.superSamples / data.samples;
+							vec3 cal = { 0,0,0 };
+							if (randomGene() >= 1.0) {
+								cal = SurfaeSample(Ray(data.camera.origin, dir), data, 0, randomGene);
+							}
+							else {
+								cal = PathTracing(Ray(data.camera.origin, dir), data, randomGene);
+							}
+							cal = cal / data.superSamples / data.superSamples / data.samples;
 							cal = clampColor(cal, 0, 1);
 							accumulatedColor += cal;
 						}
