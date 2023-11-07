@@ -1,141 +1,51 @@
 #include "SettingData.h"
 #include <fstream>
+#include <iostream>
+#include <format>
 
 namespace png {
 	LoadData::LoadData(std::string jsonName) {
-		std::ifstream jsonStream(jsonName);
-		nlohmann::json json;
-		jsonStream >> json;
+		tinyxml2::XMLDocument doc;
+		doc.LoadFile(jsonName.c_str());
 
 		// innitialize strcut
 		{
-			data.renderType = 0;
-			data.width = data.height = 100;
-			data.samples = data.spectrumSamples = 10;
-			data.superSamples = 1;
+			data.renderType = -1;
+			data.width = data.height = -1;
+			data.samples = data.spectrumSamples = -1;
+			data.superSamples = -1;
 			data.cameraOrigin = vec3();
-			data.cameraTarget = vec3(0, 0, 1);
-			data.fov = 1.0;
+			data.cameraTarget = vec3();
+			data.fov = -1;
 		}
 
-		from_json(json, data);
+		from_xml(doc, data);
+		Print();
 	}
 
-	void LoadData::SaveSampleJson(std::string fileName) {
-		SettingData tmp;
-		tmp.renderType = 0;
-		tmp.width = 960;
-		tmp.height = 540;
-		tmp.samples = 10;
-		tmp.superSamples = 4;
-		tmp.cameraOrigin = vec3(0, 0, 0);
-		tmp.cameraTarget = vec3(0, 0, 1);
-		tmp.fov = 60;
+	void LoadData::to_xml(const SettingData& in_data, tinyxml2::XMLDocument& out_doc) {
 
-		/*
-		tmp.object.push_back({
-			vec3(0,0,10)
-			, 1.0
-			, Material{
-				vec3(1.0,0.2,0.2)
-				,vec3(0,0,0)
-			}
-			});
+	}
+	void LoadData::from_xml(const tinyxml2::XMLDocument& in_doc, SettingData& out_data) {
+		in_doc.Print();
 
-		//light
-		tmp.object.push_back({
-			vec3(0,11,10)
-			, 10.0
-			, Material{
-				vec3(1.0,1.0,1.0)
-				,vec3(1,1,1)
-			}
-			});
-
-		//wall
+		// render
 		{
-			float size = 99999;
-			float space = 10;
-			tmp.object.push_back({
-				vec3(size+0.5*space,0,0)
-				, size
-				, Material{
-					vec3(1.0,0.5,0.5)
-					,vec3()
-				}
-				});
-			tmp.object.push_back({
-				vec3(-(size + 0.5 * space),0,0)
-				, size
-				, Material{
-					vec3(0.5,1.0,0.5)
-					,vec3()
-				}
-				});
-			tmp.object.push_back({
-				vec3(0,size + 0.5 * space,0)
-				, size
-				, Material{
-					vec3(0.5,0.5,1.0)
-					,vec3()
-				}
-				});
-			tmp.object.push_back({
-				vec3(0,-(size + 0.5 * space),0)
-				, size
-				, Material{
-					vec3(0.5,1.0,1.0)
-					,vec3()
-				}
-				});
-			tmp.object.push_back({
-				vec3(0,0,size + 0.5 * space)
-				, size
-				, Material{
-					vec3(1.0,0.5,1.0)
-					,vec3()
-				}
-				});
-			tmp.object.push_back({
-				vec3(0,0,-(size + 0.5 * space))
-				, size
-				, Material{
-					vec3(1.0,1.0,0.5)
-					,vec3()
-				}
-				});
+			const auto& render = in_doc.FirstChildElement("render");
+			render->FindAttribute("type")->QueryIntValue(&out_data.renderType);
+			render->FindAttribute("width")->QueryIntValue(&out_data.width);
+			render->FindAttribute("height")->QueryIntValue(&out_data.height);
+			render->FindAttribute("samples")->QueryIntValue(&out_data.samples);
+			render->FindAttribute("superSamples")->QueryIntValue(&out_data.superSamples);
 		}
-		*/
-
-		nlohmann::json tmpJson;
-		to_json(tmpJson, tmp);
-		std::ofstream ostream(fileName);
-		ostream << tmpJson;
-	}
-
-	void LoadData::to_json(nlohmann::json& json, const SettingData& data) {
-		json = {
-			{"00 width", data.width}
-			,{"00 height", data.height}
-			,{"00 samples",data.samples}
-			,{"00 superSamples",data.superSamples}
-			,{"01 camera",{
-				{"origin",{data.cameraOrigin.x,data.cameraOrigin.y,data.cameraOrigin.z}}
-				,{"target",{data.cameraTarget.x,data.cameraTarget.y,data.cameraTarget.z}}
-				,{"fov",data.fov}
-			}}
-		};
-		for (int i = 0; i < data.object.size(); ++i) {
-			auto& obj = data.object[i];
-			/*
-			json["02 scene"]["00 object"][i]["00 position"] = { obj.position.x,obj.position.y,obj.position.z };
-			json["02 scene"]["00 object"][i]["01 size"] = obj.size;
-			json["02 scene"]["00 object"][i]["02 material"]["color"] = { obj.material.color.x ,obj.material.color.y,obj.material.color.z };
-			json["02 scene"]["00 object"][i]["02 material"]["emission"] = { obj.material.emission.x,obj.material.emission.y,obj.material.emission.z };
-			*/
+		// camera
+		{
+			const auto& camera = in_doc.FirstChildElement("camera");
+			const char* origin_xyz;
+			camera->QueryStringAttribute("origin", &origin_xyz);
+			sscanf_s(origin_xyz, "%lf,%lf,%lf", &out_data.cameraOrigin.x, &out_data.cameraOrigin.y, &out_data.cameraOrigin.z);
 		}
-	}
-	void LoadData::from_json(const nlohmann::json& json, SettingData& data) {
+		/*
 		for (auto& it : json.items()) {
 			if (it.key() == "00 renderType") data.renderType = it.value();
 			else if (it.key() == "00 width") data.width = it.value();
@@ -236,7 +146,21 @@ namespace png {
 				}
 			}
 		}
+		*/
 
 	}
-
+	void LoadData::Print() {
+		std::cout << "============== LoadData::Print() ==============" << std::endl;
+		// render
+		{
+			std::cout << "render";
+			std::cout << " type:" << data.renderType;
+			std::cout << " width:" << data.width;
+			std::cout << " height:" << data.height;
+			std::cout << " samples:" << data.samples;
+			std::cout << " superSamples:" << data.superSamples;
+			std::cout << std::endl;
+		}
+		std::cout << "============== END LoadData::Print() ==============" << std::endl;
+	}
 }

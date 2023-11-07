@@ -7,6 +7,7 @@
 #include <string>
 #include <cmath>
 #include <nlohmann/json.hpp>
+#include <tinyxml2.h>
 
 namespace png {
 	struct SettingData {
@@ -18,10 +19,11 @@ namespace png {
 
 	struct LoadData {
 		LoadData(std::string);
-		static void SaveSampleJson(std::string);
+		//static void SaveSampleJson(std::string);
 
-		static void to_json(nlohmann::json& json, const SettingData& data);
-		static void from_json(const nlohmann::json& json, SettingData& data);
+		void to_xml(const SettingData& in_data, tinyxml2::XMLDocument& out_doc);
+		void from_xml(const tinyxml2::XMLDocument& in_doc, SettingData& out_data);
+		void Print();
 
 		SettingData data;
 	};

@@ -29,6 +29,7 @@
     <ClCompile Include="src\SettingData.cpp" />
     <ClCompile Include="src\Spectrum.cpp" />
     <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="tinyxml2\tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\2D.h" />
@@ -177,7 +178,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)json\include;$(ProjectDir)stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)json\include;$(ProjectDir)stb;$(ProjectDir)tinyxml2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>

@@ -362,8 +362,8 @@ namespace png {
 		double thickness = 1;
 		double radius = 2;
 		double focuce = 10;
-		Camera* camera = new LensSystem("camera/convex.json", data);
-		//Camera* camera = new NoLensCamera(data);
+		//Camera* camera = new LensSystem("camera/convex.json", data);
+		Camera* camera = new NoLensCamera(data);
 		//Camera* camera = new LensCamera(data, PrototypeLensType::Convex);
 		//random
 		png::Random rnd;
