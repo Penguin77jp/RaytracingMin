@@ -25,7 +25,7 @@ namespace png {
 		virtual Ray ScatteredRay(const Ray refRay, HitRecord& rec, const SettingData& data, double& out_pdfWeight, const double spectrum, Random& rand) const = 0;
 		vec3 color(double x, double y) const;
 		vec3 emission(double x, double y) const;
-	private:
+	public:
 		Texture* m_color;
 		Texture* m_emission;
 	};
@@ -56,8 +56,8 @@ namespace png {
 		//color
 		virtual vec3 color(const vec3& point) const = 0;
 		virtual vec3 emission(const vec3& point) const = 0;
-	protected :
-		Material* material;
+	public :
+		Material* m_material;
 	};
 	class SphereObject : public SceneObject {
 	public:
@@ -103,7 +103,7 @@ namespace png {
 
 	class BoxObject : public MeshObject {
 	public :
-		BoxObject(const vec3& offset, Material* mat);
+		BoxObject(const vec3& offset, const vec3& size, Material* mat);
 		vec3 RandomSurfacePoint(Random& rand) const;
 		vec3 Normal(const vec3& point) const;
 

@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
 	}
 	std::cout << jsonFile << " loaded" << std::endl;
 	png::LoadData loadData(jsonFile);
-	return 0;
 	png::Renderer renderer(loadData.data);
 	renderer.Render("result");
 

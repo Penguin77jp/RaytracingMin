@@ -22,7 +22,7 @@ namespace png {
 		//static void SaveSampleJson(std::string);
 
 		void to_xml(const SettingData& in_data, tinyxml2::XMLDocument& out_doc);
-		void from_xml(const tinyxml2::XMLDocument& in_doc, SettingData& out_data);
+		void from_xml(tinyxml2::XMLDocument& in_doc, SettingData& out_data);
 		void Print();
 
 		SettingData data;

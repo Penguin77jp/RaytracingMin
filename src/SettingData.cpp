@@ -12,11 +12,13 @@ namespace png {
 		{
 			data.renderType = -1;
 			data.width = data.height = -1;
-			data.samples = data.spectrumSamples = -1;
+			data.samples = -1;
+			data.spectrumSamples = -1;
 			data.superSamples = -1;
 			data.cameraOrigin = vec3();
 			data.cameraTarget = vec3();
 			data.fov = -1;
+			data.object = std::vector<SceneObject*>();
 		}
 
 		from_xml(doc, data);
@@ -26,8 +28,21 @@ namespace png {
 	void LoadData::to_xml(const SettingData& in_data, tinyxml2::XMLDocument& out_doc) {
 
 	}
-	void LoadData::from_xml(const tinyxml2::XMLDocument& in_doc, SettingData& out_data) {
+	void LoadData::from_xml(tinyxml2::XMLDocument& in_doc, SettingData& out_data) {
 		in_doc.Print();
+		std::function<std::optional<vec3>(tinyxml2::XMLElement*, std::string)> GetVec3FromXMLElement = [](tinyxml2::XMLElement* element, const std::string& str) {
+			const char* val_str = nullptr;
+			element->QueryStringAttribute(str.c_str(), &val_str);
+			std::cout << "val_str" << val_str << std::endl;
+			if (val_str == nullptr) {
+				return std::optional<vec3>(std::nullopt);
+			}
+			else {
+				vec3 ret;
+				sscanf_s(val_str, "%lf,%lf,%lf", &ret.x, &ret.y, &ret.z);
+				return std::optional<vec3>(ret);
+			}
+			};
 
 		// render
 		{
@@ -35,16 +50,56 @@ namespace png {
 			render->FindAttribute("type")->QueryIntValue(&out_data.renderType);
 			render->FindAttribute("width")->QueryIntValue(&out_data.width);
 			render->FindAttribute("height")->QueryIntValue(&out_data.height);
-			render->FindAttribute("samples")->QueryIntValue(&out_data.samples);
+			{
+				double tmp;
+				render->FindAttribute("samples")->QueryDoubleValue(&tmp);
+				out_data.samples = tmp;
+			}
 			render->FindAttribute("superSamples")->QueryIntValue(&out_data.superSamples);
 		}
 		// camera
 		{
 			const auto& camera = in_doc.FirstChildElement("camera");
-			const char* origin_xyz;
-			camera->QueryStringAttribute("origin", &origin_xyz);
-			sscanf_s(origin_xyz, "%lf,%lf,%lf", &out_data.cameraOrigin.x, &out_data.cameraOrigin.y, &out_data.cameraOrigin.z);
+			out_data.cameraOrigin = *GetVec3FromXMLElement(camera, "origin");
+			out_data.cameraTarget = *GetVec3FromXMLElement(camera, "target");
+			camera->FindAttribute("fov")->QueryDoubleValue(&out_data.fov);
 		}
+		// objects
+		{
+			tinyxml2::XMLElement* objs = in_doc.FirstChildElement("objects");
+			tinyxml2::XMLElement* obj = objs->FirstChildElement("object");
+			while (obj) {
+				Material* mat = nullptr;
+				{
+					std::optional<vec3> color = GetVec3FromXMLElement(obj, "color");
+					std::optional<vec3> emission_color = *GetVec3FromXMLElement(obj, "emission_color");
+					if (!color.has_value() || !emission_color.has_value())
+						break;
+					mat = new DiffuseMaterial(new TextureSolid(*color), new TextureSolid(*emission_color), PDF_TYPE::CosImportSample);
+				}
+				const char* object_type = "";
+				obj->QueryStringAttribute("type", &object_type);
+				if (std::strcmp(object_type, "sphere") == 0) {
+					std::optional<vec3> position = GetVec3FromXMLElement(obj, "position");
+					double size = obj->FindAttribute("size")->DoubleValue();
+					if (!position.has_value())
+						break;
+					SceneObject* tmp_object = new SphereObject(*position, size, mat);
+					data.object.emplace_back(tmp_object);
+				}
+				else if (std::strcmp(object_type, "box")) {
+					vec3 position = *GetVec3FromXMLElement(obj, "position");
+					vec3 size = *GetVec3FromXMLElement(obj, "size");
+					SceneObject* tmp_object = new BoxObject(position, size, mat);
+				}
+				else {
+					std::cout << "invalid object type" << std::endl;
+					break;
+				}
+				obj = obj->NextSiblingElement("object");
+			}
+		}
+
 		/*
 		for (auto& it : json.items()) {
 			if (it.key() == "00 renderType") data.renderType = it.value();
@@ -161,6 +216,44 @@ namespace png {
 			std::cout << " superSamples:" << data.superSamples;
 			std::cout << std::endl;
 		}
+		// camera
+		{
+			std::cout << "camera";
+			std::cout << " origin:" << std::string(data.cameraOrigin);
+			std::cout << " target:" << std::string(data.cameraTarget);
+			std::cout << std::endl;
+		}
+		// objects
+		{
+			std::cout << "objects ";
+			std::cout << "num:" << data.object.size() << std::endl;
+			for (const auto& it : data.object) {
+				std::cout << "object";
+				SphereObject* sphere = dynamic_cast<SphereObject*>(it);
+				if (sphere != nullptr) {
+					std::cout << " sphere";
+					std::cout << " posi:" << std::string(sphere->position());
+					std::cout << " size:" << sphere->size();
+					std::cout << std::endl;
+				}
+				else {
+					std::cout << "invalid object" << std::endl;
+				}
+
+				std::cout << "material";
+				DiffuseMaterial* diffuse = dynamic_cast<DiffuseMaterial*>(it->m_material);
+				if (diffuse != nullptr) {
+					std::cout << " diffuse";
+					std::cout << " color:" << std::string(diffuse->m_color->GetColor(0, 0));
+					std::cout << " emission:" << std::string(diffuse->m_emission->GetColor(0, 0));
+					std::cout << std::endl;
+				}
+				else {
+					std::cout << "invalid material" << std::endl;
+				}
+			}
+		}
+
 		std::cout << "============== END LoadData::Print() ==============" << std::endl;
 	}
 }

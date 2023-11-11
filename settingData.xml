@@ -1,2 +1,7 @@
-<render type="1" width="250" height="250" samples="50" superSamples="1"/>
-<camera origin="0,0,0"/>
+<render type="0" width="250" height="250" samples="1e2" superSamples="1"/>
+<camera origin="7,0,0" target="0,0,0" fov="1"/>
+<objects>
+    <!-- <object type="sphere" position="0,22,0" size="20" color="0.75,0.5,0.5" emission_color="1,1,1"/> -->
+    <object type="sphere" position="0,0,0" size="1" color="0.5,0.5,0.5" emission_color="0,0,0"/>
+    <object type="box" position="0,0,0" size="1,1,1"/>
+</objects>

@@ -212,7 +212,7 @@ namespace png {
 	}
 
 	SceneObject::SceneObject(Material* mat)
-		: material(mat)
+		: m_material(mat)
 	{}
 
 
@@ -248,7 +248,7 @@ namespace png {
 		vec3 outwardNormal = (hitrecord.point - this->position()) / this->size();
 		hitrecord.set_face_normal(refRay, outwardNormal);
 
-		return material->ScatteredRay(refRay, hitrecord, data, out_pdfWeight, spectrum, rand);
+		return m_material->ScatteredRay(refRay, hitrecord, data, out_pdfWeight, spectrum, rand);
 	}
 	vec3 SphereObject::RandomSurfacePoint(Random& rand) const {
 		double xi_theta = rand.RandomGenerate() * PI;
@@ -260,10 +260,10 @@ namespace png {
 		return Normalize(point - position());
 	}
 	vec3 SphereObject::color(const vec3& point) const {
-		return material->color(0, 0);
+		return m_material->color(0, 0);
 	}
 	vec3 SphereObject::emission(const vec3& point) const {
-		return material->emission(0, 0);
+		return m_material->emission(0, 0);
 	}
 
 	void SphereObject::SetPosition(vec3 posi) { m_position = posi; }
@@ -346,7 +346,7 @@ namespace png {
 		hitrecord.set_face_normal(refRay, outwardNormal);
 		//hitrecord.mat_ptr = material;
 
-		return material->ScatteredRay(refRay, hitrecord, data, out_pdfWeight, spectrum, rand);
+		return m_material->ScatteredRay(refRay, hitrecord, data, out_pdfWeight, spectrum, rand);
 	}
 	double SumArea(const std::vector<double> elements, const int index) {
 		double sum = 0.0;
@@ -398,7 +398,7 @@ namespace png {
 			auto cross12 = Cross(p1, p2);
 			auto cross20 = Cross(p2, p0);
 			if (Dot(cross01, cross12) >= 0 && Dot(cross12, cross20) >= 0) {
-				return Normalize(Cross(m_mesh[i*3+1]-m_mesh[i*3], m_mesh[i*3+2]-m_mesh[i*3]));
+				return Normalize(Cross(m_mesh[i * 3 + 1] - m_mesh[i * 3], m_mesh[i * 3 + 2] - m_mesh[i * 3]));
 			}
 		}
 
@@ -406,13 +406,13 @@ namespace png {
 	}
 
 	vec3 MeshObject::color(const vec3& point) const {
-		return material->color(0, 0);
+		return m_material->color(0, 0);
 	}
 	vec3 MeshObject::emission(const vec3& point) const {
-		return material->emission(0, 0);
+		return m_material->emission(0, 0);
 	}
 
-	BoxObject::BoxObject(const vec3& offset, Material* mat)
+	BoxObject::BoxObject(const vec3& offset, const vec3& size, Material* mat)
 		: MeshObject(std::vector<vec3>({
 		//front
 		vec3(1,1,-1), vec3(-1,1,-1), vec3(-1,-1,-1),
@@ -434,6 +434,13 @@ namespace png {
 		vec3(-1,1,1), vec3(1,-1,1), vec3(-1,-1,1),
 			}), mat) {
 
+		// size
+		for (int i = 0; i < m_mesh.size(); ++i) {
+			m_mesh[i].x *= size.x;
+			m_mesh[i].y *= size.y;
+			m_mesh[i].z *= size.z;
+		}
+
 		//offset
 		for (int i = 0; i < m_mesh.size(); ++i) {
 			m_mesh[i] += offset;
@@ -447,10 +454,10 @@ namespace png {
 	}
 
 	vec3 BoxObject::color(const vec3& point) const {
-		return material->color(0, 0);
+		return m_material->color(0, 0);
 	}
 	vec3 BoxObject::emission(const vec3& point) const {
-		return material->emission(0, 0);
+		return m_material->emission(0, 0);
 	}
 
 	PlaneObject::PlaneObject(const vec3& offset, const vec3& up, const vec3& right, Material* mat)
@@ -486,7 +493,7 @@ namespace png {
 		auto dotX = Dot(pointInTexture, 2.0 * m_right) / Dot(2.0 * m_right, 2.0 * m_right);
 		auto dotY = Dot(pointInTexture, 2.0 * m_up) / Dot(2.0 * m_up, 2.0 * m_up);
 
-		return material->emission(dotX, dotY);
+		return m_material->emission(dotX, dotY);
 	}
 
 }
